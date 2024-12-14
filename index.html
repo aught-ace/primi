@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <title>Primi</title>
+	    <link href="./icon.png" rel="icon">
+	    <link href="./style.css" rel="stylesheet">
+    </head>
+    <body>
+        <div id="editor">
+            <div id="file">
+                <form id="file-form" action="">
+                    <input id="new" value="New" type="button">
+                    <input id="load" value="Load" type="button">
+                    <input
+                        id="name" value="" autocomplete="on" type="text"><input
+                        id="save" value="Save" type="submit">
+                </form>
+            </div>
+            <div id="mode">
+                <span
+                    id="vertex-3d-mode" class="radio-button selected">Vertex3D</span><span
+                    id="space-mode" class="radio-button">Space</span><span
+                    id="ruler-3d-mode" class="radio-button">Ruler3D</span><span
+                    id="vertex-2d-mode" class="radio-button">Vertex2D</span><span
+                    id="texel-mode" class="radio-button">Texel</span><span
+                    id="ruler-2d-mode" class="radio-button">Ruler2D</span>
+            </div>
+
+            <!--div id="time-bar">
+                <div id="time" style="top:calc(100% - 2em);">0</div>
+            </div-->
+            <canvas id="canvas"></canvas>
+            <div id="depth-bar">
+                <div id="depth" style="top:calc(50% - 1em);">0</div>
+            </div>
+            
+            <div id="scroll-pad">
+                <div id="scroll" style="left:25%;top:25%;">Scroll</div>
+            </div>
+            <div id="rotate-pad">
+                <div id="rotate" style="left:25%;top:25%;">Rotate</div>
+            </div>
+
+            <div id="ruler-3d-div" class="none">
+                <form id="ruler-3d-form" action="">
+                    <dl>
+                        <dt>Horizontal</dt>
+                        <dd>
+                            <input id="left" value="-7" min="-255" max="255" type="number"> -
+                            <input id="right" value="7" min="-255" max="255" type="number">
+                        </dd>
+                        <dt>Vertical</dt>
+                        <dd>
+                            <input id="top" value="-7" min="-255" max="255" type="number"> -
+                            <input id="bottom" value="7" min="-255" max="255" type="number">
+                        </dd>
+                        <dt>Depth</dt>
+                        <dd>
+                            <input id="near" value="-7" min="-255" max="255" type="number"> -
+                            <input id="far" value="7" min="-255" max="255" type="number">
+                        </dd>
+                    </dl>
+                </form>
+            </div>
+            
+            <div id="ruler-2d-div" class="none">
+                <form id="ruler-2d-form" action="">
+                    <dl>
+                        <dt>Width</dt>
+                        <dd><input id="texture-width" value="16" min="1" max="256" type="number"></dd>
+                        <dt>Height</dt>
+                        <dd><input id="texture-height" value="16" min="1" max="256" type="number"></dd>
+                    </dl>
+                </form>
+            </div>
+
+            <div id="vertex-div" class="none">
+                <div id="vertice-list"></div>
+                <span id="new-vertex" class="button">New Vertex</span>
+            </div>
+            <div id="space-div" class="none">
+                <div id="space-list"></div>
+                <span id="new-space" class="button">New Space</span>
+            </div>
+            <div id="texel-div" class="none">
+            </div>
+        </div>
+
+        <script src="./draw/matrix.js" type="module" defer></script>
+        <script src="./draw/model.js" type="module" defer></script>
+        <script src="./draw/renderer.js" type="module" defer></script>
+        <script src="./main.js" type="module" defer></script>
+    </body>
+</html>

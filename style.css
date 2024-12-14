@@ -1,0 +1,420 @@
+/* 2/1よりも縦長 */
+@media (min-aspect-ratio: 2/1) and (orientation: landscape)
+{
+    #editor
+    {
+        width: 200svh;
+        height: 100svh;
+        left: calc(50svw - 100svh);
+        top: 0;
+        font-size: calc(100svh / 64);
+    }
+}
+/* 2/1よりも横長 */
+@media (max-aspect-ratio: 2/1) and (orientation: landscape)
+{
+    #editor
+    {
+        width: 100svw;
+        height: 50svw;
+        left: 0;
+        top: calc(50svh - 25svw);
+        font-size: calc(50svw / 64);
+    }
+}
+/* 1/2よりも縦長 */
+@media (min-aspect-ratio: 1/2) and (orientation: portrait)
+{
+    #editor
+    {
+        width: 50svh;
+        height: 100svh;
+        left: calc(50svw - 25svh);
+        top: 0;
+        font-size: calc(100svh / 64);
+    }
+}
+/* 1/2よりも横長 */
+@media (max-aspect-ratio: 1/2) and (orientation: portrait)
+{
+    #editor
+    {
+        width: 100svw;
+        height: 200svw;
+        left: 0;
+        top: calc(50svh - 100svw);
+        font-size: calc(200svw / 64);
+    }
+}
+
+/* 横長 */
+@media (min-aspect-ratio: 1/2) and (orientation: landscape)
+{
+    #editor
+    {
+        grid-template-columns: repeat(32, 1fr);
+        grid-template-rows: repeat(16, 1fr);
+    }
+    #file
+    {
+        grid-column: 1 / 9;
+        grid-row: 1 / 2;
+    }
+    #mode
+    {
+        grid-column: 25 / 33;
+        grid-row: 1 / 2;
+    }
+    #canvas
+    {
+        grid-column: 8 / 24;
+        grid-row: 1 / 17;
+    }
+    #depth-bar
+    {
+        grid-column: 24 / 25;
+        grid-row: 1 / 17;
+    }
+    #depth
+    {
+        height: 2em;
+        line-height: 2em;
+        font-size: 2em;
+    }
+    #scroll-pad
+    {
+        grid-column: 2 / 8;
+        grid-row: 3 / 9;
+    }
+    #rotate-pad
+    {
+        grid-column: 2 / 8;
+        grid-row: 10 / 16;
+    }
+    #scroll,
+    #rotate
+    {
+        font-size: 2em;
+    }
+    #ruler-3d-div,
+    #ruler-2d-div,
+    #vertex-div,
+    #space-div,
+    #texel-div
+    {
+        grid-column: 25 / 33;
+        grid-row: 2 / 17;
+    }
+}
+/* 縦長 */
+@media (orientation: portrait)
+{
+    #editor
+    {
+        grid-template-columns: repeat(16, 1fr);
+        grid-template-rows: repeat(32, 1fr);
+        overflow: hidden;
+    }
+    #file
+    {
+        grid-column: 1 / 17;
+        grid-row: 1 / 3;
+    }
+    #canvas
+    {
+        grid-column: 2 / 16;
+        grid-row: 3 / 17;
+    }
+    #mode
+    {
+        grid-column: 1 / 17;
+        grid-row: 17 / 19;
+    }
+    #scroll-pad
+    {
+        grid-column: 4 / 8;
+        grid-row: 19 / 23;
+    }
+    #rotate-pad
+    {
+        grid-column: 10 / 14;
+        grid-row: 19 / 23;
+    }
+    #depth-bar
+    {
+        grid-column: 16 / 17;
+        grid-row: 3 / 17;
+    }
+    #depth
+    {
+        height: 2em;
+        line-height: 2em;
+    }
+    #ruler-3d-div,
+    #ruler-2d-div,
+    #vertex-div,
+    #space-div,
+    #texel-div
+    {
+        grid-column: 1 / 17;
+        grid-row: 23 / 33;
+    }
+}
+
+/* 全体のブロック */
+#editor
+{
+    position: absolute;
+    display: grid;
+}
+
+/* キャンバス*/
+#canvas
+{
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+/* スクロールパッド */
+#scroll-pad,
+#rotate-pad
+{
+    background-color: #666;
+    padding: 0;
+    border-style: none;
+    border-radius: 100%;
+}
+/* スクロールつまみ */
+#scroll,
+#rotate
+{
+    background-color: #333;
+    color: #FFF;
+    text-align: center;
+    padding: calc(25% - 0.5em) 0 0 0;
+    border-style: none;
+    border-radius: 100%;
+    width: 50%;
+    height: 50%;
+    position: relative;
+}
+
+/* 時間バー */
+/*
+#time-bar
+{
+    background-color: #333;
+    border-radius: 0.25em;
+}
+#time
+{
+    width: 100%;
+    height: 2em;
+    background-color: #666;
+    left: 0;
+    text-align: center;
+    line-height: 2em;
+    border-radius: 0.25em;
+    position: relative;
+}
+*/
+
+/* 深度バー */
+#depth-bar
+{
+    background-color: #666;
+    color: #FFF;
+    border-radius: 0 0.5em 0.5em 0;
+}
+#depth
+{
+    width: 100%;
+    background-color: #333;
+    left: 0;
+    text-align: center;
+    border-radius: 0.5em;
+    position: relative;
+}
+
+/* ファイル関係 */
+#name
+{
+    border-radius: 0.5em 0 0 0.5em;
+}
+#save
+{
+    border-radius: 0 0.5em 0.5em 0;
+}
+
+#ruler-3d-div,
+#ruler-2d-div,
+#vertex-div,
+#space-div,
+#texel-div
+{
+    padding: 0.5em;
+}
+
+
+/* ファイルバー */
+#file
+{
+    text-align: center;
+    padding-top: 0.5em;
+}
+/* モードバー */
+#mode
+{
+    text-align: center;
+    padding-top: 0.5em;
+}
+
+/* spanでできたボタン */
+.radio-button
+{
+    background-color: #666;
+    color: #FFF;
+    padding: 1em 0.5em 0 0.5em;
+    border-style: none;
+    height: 3em;
+    vertical-align: middle;
+    display: inline-block;
+}
+#mode #vertex-3d-mode
+{
+    border-radius: 0.5em 0 0 0.5em;
+}
+#mode  #ruler-2d-mode
+{
+    border-radius: 0 0.5em 0.5em 0;
+}
+#mode .radio-button
+{
+    border-radius: 0;
+}
+
+.button
+{
+    background-color: #666;
+    color: #FFF;
+    padding: 1em 0.5em 0 0.5em;
+    border-style: none;
+    border-radius: 0.5em;
+    height: 3em;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.radio-button.selected
+{
+    background-color: #333;
+    color: #FFF;
+}
+.button.selected
+{
+    background-color: #333;
+    color: #FFF;
+}
+
+/* 値入力欄 */
+input[type="text"],
+input[type="number"]
+{
+    background-color: #CCC;
+    color: #000;
+    padding: 0 0 0 0.5em;
+    border-style: none;
+    border-width: 0;
+    border-radius: 0.5em;
+    vertical-align: middle;
+    outline: none;
+}
+input[type="text"]
+{
+    width: 12em;
+    height: 3em;
+}
+input[type="number"]
+{
+    width: 8em;
+    height: 3em;
+}
+
+/* ボタン */
+input[type="button"],
+input[type="submit"]
+{
+    background-color: #666;
+    color: #FFF;
+    border: solid 0.25em #666;
+    padding: 0 0.5em;
+    border-radius: 0.5em;
+    vertical-align: middle;
+    height: 3em;
+    outline: none;
+}
+input[type="button"]:active,
+input[type="submit"]:active
+{
+    background-color: #000;
+    color: #FFF;
+    border-color: #000;
+}
+
+/* データリスト */
+dt
+{
+    line-height: 2em;
+}
+
+/* リンク */
+a
+{
+    color: #900;
+    border-bottom: solid 0.125em #F00;
+    padding: 0;
+    text-decoration: none;
+}
+/* 押下時リンク */
+a:active
+{
+    border-bottom-width: 0.25em;
+}
+
+/* 隠すクラス */
+.none
+{
+    display: none;
+}
+
+/* 全体 */
+body
+{
+    background-color: #888;
+    color: #000;
+    font-size: 12pt;
+    overflow: hidden;
+}
+html
+{
+    overflow: hidden;
+}
+
+/* 全ての要素 */
+*
+{
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    font-size: 1em;
+    font-family: sans-serif;
+    line-height: 1em;
+    box-sizing: border-box;
+    touch-action: manipulation;
+    user-select: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #FFF #000;
+    scrollbar-width: 1em;
+}
