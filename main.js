@@ -84,310 +84,277 @@ const removeClass = (element, className) =>
     if(element.classList.contains(className)) element.classList.remove(className)
 }
 
-// セーブボタンが押された時
-const loadCallback = (e) =>
+// コールバック関数のオブジェクト
+const callback =
 {
-    // フォーム送信をキャンセル
-    e.stopPropagation()
-    e.preventDefault()
-}
-element.loadForm.addEventListener('click', loadCallback)
-// セーブボタンが押された時
-const saveCallback = (e) =>
-{
-    // フォーム送信をキャンセル
-    e.stopPropagation()
-    e.preventDefault()
-}
-element.saveForm.addEventListener('submit', saveCallback)
-
-// オブジェクト新規作成ボタンが押された時
-const setCallback = (e) =>
-{
-    // フォーム送信をキャンセル
-    e.stopPropagation()
-    e.preventDefault()
-
-    // 入力欄の値をオブジェクトにセット
-    object.name = element.name.value
-    object.left = element.left.value
-    object.right = element.right.value
-    object.top = element.top.value
-    object.bottom = element.bottom.value
-    object.near = element.near.value
-    object.far = element.far.value
-    object.timeLength = element.timeLength.value
-}
-element.ruler2dForm.addEventListener('submit', setCallback)
-
-// モード変更ボタンが押された時
-const changeModeCallback = (e) =>
-{
-    // クリックされている時
-    if(!(e.buttons & 1)) return
-
-    addClass(element.ruler3dDiv, 'none')
-    addClass(element.ruler2dDiv, 'none')
-    addClass(element.vertexDiv, 'none')
-    addClass(element.spaceDiv, 'none')
-    addClass(element.texelDiv, 'none')
-
-    removeClass(element.ruler3dMode, 'selected')
-    removeClass(element.ruler2dMode, 'selected')
-    removeClass(element.vertex3dMode, 'selected')
-    removeClass(element.vertex2dMode, 'selected')
-    removeClass(element.spaceMode, 'selected')
-    removeClass(element.texelMode, 'selected')
-
-    if(e.target.id === 'ruler-3d-mode') mode = 'ruler3d'
-    if(e.target.id === 'vertex-3d-mode') mode = 'vertex3d'
-    if(e.target.id === 'space-mode') mode = 'space'
-    if(e.target.id === 'ruler-2d-mode') mode = 'ruler2d'
-    if(e.target.id === 'vertex-2d-mode') mode = 'vertex2d'
-    if(e.target.id === 'texel-mode') mode = 'texel'
-
-    if(mode === 'ruler3d')
+    load: (e) =>
     {
-        removeClass(element.ruler3dDiv, 'none')
-        addClass(element.ruler3dMode, 'selected')
-    }
-    if(mode === 'vertex3d')
+        // フォーム送信をキャンセル
+        e.stopPropagation()
+        e.preventDefault()
+    },
+    save: (e) =>
     {
-        removeClass(element.vertexDiv, 'none')
-        addClass(element.vertex3dMode, 'selected')
-    }
-    if(mode === 'space')
+        // フォーム送信をキャンセル
+        e.stopPropagation()
+        e.preventDefault()
+    },
+    apply2d: (e) =>
     {
-        removeClass(element.spaceDiv, 'none')
-        addClass(element.spaceMode, 'selected')
-    }
-    if(mode === 'vertex2d')
-    {
-        removeClass(element.vertexDiv, 'none')
-        addClass(element.vertex2dMode, 'selected')
-    }
-    if(mode === 'ruler2d')
-    {
-        removeClass(element.ruler2dDiv, 'none')
-        addClass(element.ruler2dMode, 'selected')
-    }
-    if(mode === 'texel')
-    {
-        removeClass(element.texelDiv, 'none')
-        addClass(element.texelMode, 'selected')
-    }
-}
-element.ruler3dMode.addEventListener('pointerdown', changeModeCallback)
-element.vertex3dMode.addEventListener('pointerdown', changeModeCallback)
-element.spaceMode.addEventListener('pointerdown', changeModeCallback)
-element.ruler2dMode.addEventListener('pointerdown', changeModeCallback)
-element.vertex2dMode.addEventListener('pointerdown', changeModeCallback)
-element.texelMode.addEventListener('pointerdown', changeModeCallback)
-element.ruler3dMode.addEventListener('pointermove', changeModeCallback)
-element.vertex3dMode.addEventListener('pointermove', changeModeCallback)
-element.spaceMode.addEventListener('pointermove', changeModeCallback)
-element.ruler2dMode.addEventListener('pointermove', changeModeCallback)
-element.vertex2dMode.addEventListener('pointermove', changeModeCallback)
-element.texelMode.addEventListener('pointermove', changeModeCallback)
-
-/*
-const getDepthInput = (clientY) =>
-{
-    const depthRect = element.depth.getBoundingClientRect()
-    const depthBarRect = element.depthBar.getBoundingClientRect()
-
-    // 入力された位置
-    const input = Math.min(Math.max(
-        0,
-        (clientY - depthBarRect.top - depthRect.height / 2) / (depthBarRect.height - depthRect.height)),
-        1
-    )
-    // 上からの位置
-    const top = input * (1 - depthRect.height / depthBarRect.height)
-    // つまみ上に書く数字
-    const content = Math.round((1 - input) * (object.far - object.near) + object.near)
-    // 離した時にフィットさせる丸めた位置
-    const roundTop =
-        Math.round(input * (object.far - object.near)) /
-        (object.far - object.near) * (1 - depthRect.height / depthBarRect.height)
-
-    const o =
-    {
-        top: top * 100,
-        content: content,
-        roundTop: roundTop * 100,
-    }
-    return o
-}
-*/
-
-// バーを押した
-const depthBarMoveCallback = (e) =>
-{
-    // 左クリックされていない時は返す
-    if(!(e.buttons & 1)) return
-
-    let innerElem, innerRect, outerRect
-
-    if(e.target.id === 'depth' || e.target.id === 'depth-bar')
-    {
-        innerElem = element.depth
-        innerRect = element.depth.getBoundingClientRect()
-        outerRect = element.depthBar.getBoundingClientRect()
-    }
-    else if(e.target.id === 'time' || e.target.id === 'time-bar')
-    {
-        innerElem = element.time
-        innerRect = element.time.getBoundingClientRect()
-        outerRect = element.timeBar.getBoundingClientRect()
-    }
-    else return
-
-    let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
-
-    if(ny < -1) ny = -1
-    if(ny > 1) ny = 1
-
-    innerElem.style.top = (25 + ny * 25) + '%'
-}
-element.depthBar.addEventListener('pointerdown', depthBarMoveCallback)
-element.depth.addEventListener('pointerdown', depthBarMoveCallback)
-element.depthBar.addEventListener('pointermove', depthBarMoveCallback)
-element.depth.addEventListener('pointermove', depthBarMoveCallback)
-element.depthBar.addEventListener('pointerover', depthBarMoveCallback)
-element.depth.addEventListener('pointerover', depthBarMoveCallback)
-element.timeBar.addEventListener('pointerdown', depthBarMoveCallback)
-element.time.addEventListener('pointerdown', depthBarMoveCallback)
-element.timeBar.addEventListener('pointermove', depthBarMoveCallback)
-element.time.addEventListener('pointermove', depthBarMoveCallback)
-element.timeBar.addEventListener('pointerover', depthBarMoveCallback)
-element.time.addEventListener('pointerover', depthBarMoveCallback)
-// バーを離した
-const depthBarUpCallback = (e) =>
-{
-    if(
-        (
-            e.type === 'pointerleave' ||
-            e.type === 'pointerout'
-        ) && !(e.buttons & 1)
-    ) return
+        // フォーム送信をキャンセル
+        e.stopPropagation()
+        e.preventDefault()
     
-    let innerElem
-
-    if(e.target.id === 'depth' || e.target.id === 'depth-bar')
+        // 入力欄の値をオブジェクトにセット
+        object.name = element.name.value
+        object.left = element.left.value
+        object.right = element.right.value
+        object.top = element.top.value
+        object.bottom = element.bottom.value
+        object.near = element.near.value
+        object.far = element.far.value
+        object.timeLength = element.timeLength.value
+    },
+    changeMode: (e) =>
     {
-        innerElem = element.depth
-    }
-    else if(e.target.id === 'time' || e.target.id === 'time-bar')
+        // クリックされている時
+        if(!(e.buttons & 1)) return
+    
+        addClass(element.ruler3dDiv, 'none')
+        addClass(element.ruler2dDiv, 'none')
+        addClass(element.vertexDiv, 'none')
+        addClass(element.spaceDiv, 'none')
+        addClass(element.texelDiv, 'none')
+    
+        removeClass(element.ruler3dMode, 'selected')
+        removeClass(element.ruler2dMode, 'selected')
+        removeClass(element.vertex3dMode, 'selected')
+        removeClass(element.vertex2dMode, 'selected')
+        removeClass(element.spaceMode, 'selected')
+        removeClass(element.texelMode, 'selected')
+    
+        if(e.target.id === 'ruler-3d-mode') mode = 'ruler3d'
+        if(e.target.id === 'vertex-3d-mode') mode = 'vertex3d'
+        if(e.target.id === 'space-mode') mode = 'space'
+        if(e.target.id === 'ruler-2d-mode') mode = 'ruler2d'
+        if(e.target.id === 'vertex-2d-mode') mode = 'vertex2d'
+        if(e.target.id === 'texel-mode') mode = 'texel'
+    
+        if(mode === 'ruler3d')
+        {
+            removeClass(element.ruler3dDiv, 'none')
+            addClass(element.ruler3dMode, 'selected')
+        }
+        if(mode === 'vertex3d')
+        {
+            removeClass(element.vertexDiv, 'none')
+            addClass(element.vertex3dMode, 'selected')
+        }
+        if(mode === 'space')
+        {
+            removeClass(element.spaceDiv, 'none')
+            addClass(element.spaceMode, 'selected')
+        }
+        if(mode === 'vertex2d')
+        {
+            removeClass(element.vertexDiv, 'none')
+            addClass(element.vertex2dMode, 'selected')
+        }
+        if(mode === 'ruler2d')
+        {
+            removeClass(element.ruler2dDiv, 'none')
+            addClass(element.ruler2dMode, 'selected')
+        }
+        if(mode === 'texel')
+        {
+            removeClass(element.texelDiv, 'none')
+            addClass(element.texelMode, 'selected')
+        }
+    },
+    touchSlider: (e) =>
     {
-        innerElem = element.time
-    }
-    else return
-
-    innerElem.style.top = '25%'
+        // 左クリックされていない時は返す
+        if(!(e.buttons & 1)) return
+    
+        let innerElem, innerRect, outerRect
+    
+        if(e.target.id === 'depth' || e.target.id === 'depth-bar')
+        {
+            innerElem = element.depth
+            innerRect = element.depth.getBoundingClientRect()
+            outerRect = element.depthBar.getBoundingClientRect()
+        }
+        else if(e.target.id === 'time' || e.target.id === 'time-bar')
+        {
+            innerElem = element.time
+            innerRect = element.time.getBoundingClientRect()
+            outerRect = element.timeBar.getBoundingClientRect()
+        }
+        else return
+    
+        let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
+    
+        if(ny < -1) ny = -1
+        if(ny > 1) ny = 1
+    
+        innerElem.style.top = (25 + ny * 25) + '%'
+    },
+    releaseSlider: (e) =>
+    {
+        if(
+            (
+                e.type === 'pointerleave' ||
+                e.type === 'pointerout'
+            ) && !(e.buttons & 1)
+        ) return
+        
+        let innerElem
+    
+        if(e.target.id === 'depth' || e.target.id === 'depth-bar')
+        {
+            innerElem = element.depth
+        }
+        else if(e.target.id === 'time' || e.target.id === 'time-bar')
+        {
+            innerElem = element.time
+        }
+        else return
+    
+        innerElem.style.top = '25%'
+    },
+    touchPad: (e) =>
+    {
+        if(
+            (
+                e.type === 'pointermove' ||
+                e.type === 'pointerover'
+            ) &&
+            !(e.buttons & 1)
+        ) return
+    
+        let innerElem, innerRect, outerRect
+    
+        if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
+        {
+            innerElem = element.scroll
+            innerRect = element.scroll.getBoundingClientRect()
+            outerRect = element.scrollPad.getBoundingClientRect()
+        }
+        else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
+        {
+            innerElem = element.rotate
+            innerRect = element.rotate.getBoundingClientRect()
+            outerRect = element.rotatePad.getBoundingClientRect()
+        }
+        else return
+    
+        let nx = (e.clientX - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
+        let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
+    
+        const s = Math.sqrt(nx * nx + ny * ny)
+        if(s > 1)
+        {
+            nx /= s
+            ny /= s
+        }
+    
+        innerElem.style.left = (25 + nx * 25) + '%'
+        innerElem.style.top = (25 + ny * 25) + '%'
+    },
+    releasePad: (e) =>
+    {
+        // クリックせずに去った時は返す
+        if(
+            (
+                e.type === 'pointerout' ||
+                e.type === 'pointerleave'
+            ) && !(e.buttons & 1)
+        ) return
+    
+        let innerElem
+    
+        if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
+        {
+            innerElem = element.scroll
+        }
+        else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
+        {
+            innerElem = element.rotate
+        }
+        else return
+    
+        innerElem.style.left = '25%'
+        innerElem.style.top = '25%'
+    },
 }
-element.depthBar.addEventListener('pointerup', depthBarUpCallback)
-element.depth.addEventListener('pointerup', depthBarUpCallback)
-element.depthBar.addEventListener('pointerleave', depthBarUpCallback)
-element.depth.addEventListener('pointerleave', depthBarUpCallback)
-element.depthBar.addEventListener('pointerout', depthBarUpCallback)
-element.depth.addEventListener('pointerout', depthBarUpCallback)
-element.timeBar.addEventListener('pointerup', depthBarUpCallback)
-element.time.addEventListener('pointerup', depthBarUpCallback)
-element.timeBar.addEventListener('pointerleave', depthBarUpCallback)
-element.time.addEventListener('pointerleave', depthBarUpCallback)
-element.timeBar.addEventListener('pointerout', depthBarUpCallback)
-element.time.addEventListener('pointerout', depthBarUpCallback)
 
-
-// パッドを押した
-const padMoveCallback = (e) =>
-{
-    if(
-        (
-            e.type === 'pointermove' ||
-            e.type === 'pointerover'
-        ) &&
-        !(e.buttons & 1)
-    ) return
-
-    let innerElem, innerRect, outerRect
-
-    if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
-    {
-        innerElem = element.scroll
-        innerRect = element.scroll.getBoundingClientRect()
-        outerRect = element.scrollPad.getBoundingClientRect()
-    }
-    else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
-    {
-        innerElem = element.rotate
-        innerRect = element.rotate.getBoundingClientRect()
-        outerRect = element.rotatePad.getBoundingClientRect()
-    }
-    else return
-
-    let nx = (e.clientX - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
-    let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
-
-    const s = Math.sqrt(nx * nx + ny * ny)
-    if(s > 1)
-    {
-        nx /= s
-        ny /= s
-    }
-
-    innerElem.style.left = (25 + nx * 25) + '%'
-    innerElem.style.top = (25 + ny * 25) + '%'
-}
-element.scrollPad.addEventListener('pointerdown', padMoveCallback)
-element.scroll.addEventListener('pointerdown', padMoveCallback)
-element.rotatePad.addEventListener('pointerdown', padMoveCallback)
-element.rotate.addEventListener('pointerdown', padMoveCallback)
-element.scrollPad.addEventListener('pointermove', padMoveCallback)
-element.scroll.addEventListener('pointermove', padMoveCallback)
-element.rotatePad.addEventListener('pointermove', padMoveCallback)
-element.rotate.addEventListener('pointermove', padMoveCallback)
-element.scrollPad.addEventListener('pointerover', padMoveCallback)
-element.scroll.addEventListener('pointerover', padMoveCallback)
-element.rotatePad.addEventListener('pointerover', padMoveCallback)
-element.rotate.addEventListener('pointerover', padMoveCallback)
-
-// パッドを離した
-const padUpCallback = (e) =>
-{
-    // クリックせずに去った時は返す
-    if(
-        (
-            e.type === 'pointerout' ||
-            e.type === 'pointerleave'
-        ) && !(e.buttons & 1)
-    ) return
-
-    let innerElem
-
-    if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
-    {
-        innerElem = element.scroll
-    }
-    else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
-    {
-        innerElem = element.rotate
-    }
-    else return
-
-    innerElem.style.left = '25%'
-    innerElem.style.top = '25%'
-}
-element.scrollPad.addEventListener('pointerup', padUpCallback)
-element.scroll.addEventListener('pointerup', padUpCallback)
-element.rotatePad.addEventListener('pointerup', padUpCallback)
-element.rotate.addEventListener('pointerup', padUpCallback)
-element.scrollPad.addEventListener('pointerleave', padUpCallback)
-element.scroll.addEventListener('pointerleave', padUpCallback)
-element.rotatePad.addEventListener('pointerleave', padUpCallback)
-element.rotate.addEventListener('pointerleave', padUpCallback)
-element.scrollPad.addEventListener('pointerout', padUpCallback)
-element.scroll.addEventListener('pointerout', padUpCallback)
-element.rotatePad.addEventListener('pointerout', padUpCallback)
-element.rotate.addEventListener('pointerout', padUpCallback)
+// ロードとセーブのイベント
+element.loadForm.addEventListener('click', callback.load)
+element.saveForm.addEventListener('submit', callback.save)
+// オブジェクト新規作成ボタンが押された時のイベント
+element.ruler2dForm.addEventListener('submit', callback.apply2d)
+// モード変更ボタンが押された時のイベント
+element.ruler3dMode.addEventListener('pointerdown', callback.changeMode)
+element.vertex3dMode.addEventListener('pointerdown', callback.changeMode)
+element.spaceMode.addEventListener('pointerdown', callback.changeMode)
+element.ruler2dMode.addEventListener('pointerdown', callback.changeMode)
+element.vertex2dMode.addEventListener('pointerdown', callback.changeMode)
+element.texelMode.addEventListener('pointerdown', callback.changeMode)
+element.ruler3dMode.addEventListener('pointermove', callback.changeMode)
+element.vertex3dMode.addEventListener('pointermove', callback.changeMode)
+element.spaceMode.addEventListener('pointermove', callback.changeMode)
+element.ruler2dMode.addEventListener('pointermove', callback.changeMode)
+element.vertex2dMode.addEventListener('pointermove', callback.changeMode)
+element.texelMode.addEventListener('pointermove', callback.changeMode)
+// バーを押したのイベント
+element.depthBar.addEventListener('pointerdown', callback.touchSlider)
+element.depth.addEventListener('pointerdown', callback.touchSlider)
+element.depthBar.addEventListener('pointermove', callback.touchSlider)
+element.depth.addEventListener('pointermove', callback.touchSlider)
+element.depthBar.addEventListener('pointerover', callback.touchSlider)
+element.depth.addEventListener('pointerover', callback.touchSlider)
+element.timeBar.addEventListener('pointerdown', callback.touchSlider)
+element.time.addEventListener('pointerdown', callback.touchSlider)
+element.timeBar.addEventListener('pointermove', callback.touchSlider)
+element.time.addEventListener('pointermove', callback.touchSlider)
+element.timeBar.addEventListener('pointerover', callback.touchSlider)
+element.time.addEventListener('pointerover', callback.touchSlider)
+// バーを離したのイベント
+element.depthBar.addEventListener('pointerup', callback.releaseSlider)
+element.depth.addEventListener('pointerup', callback.releaseSlider)
+element.depthBar.addEventListener('pointerleave', callback.releaseSlider)
+element.depth.addEventListener('pointerleave', callback.releaseSlider)
+element.depthBar.addEventListener('pointerout', callback.releaseSlider)
+element.depth.addEventListener('pointerout', callback.releaseSlider)
+element.timeBar.addEventListener('pointerup', callback.releaseSlider)
+element.time.addEventListener('pointerup', callback.releaseSlider)
+element.timeBar.addEventListener('pointerleave', callback.releaseSlider)
+element.time.addEventListener('pointerleave', callback.releaseSlider)
+element.timeBar.addEventListener('pointerout', callback.releaseSlider)
+element.time.addEventListener('pointerout', callback.releaseSlider)
+// パッドを押したのイベント
+element.scrollPad.addEventListener('pointerdown', callback.touchPad)
+element.scroll.addEventListener('pointerdown', callback.touchPad)
+element.rotatePad.addEventListener('pointerdown', callback.touchPad)
+element.rotate.addEventListener('pointerdown', callback.touchPad)
+element.scrollPad.addEventListener('pointermove', callback.touchPad)
+element.scroll.addEventListener('pointermove', callback.touchPad)
+element.rotatePad.addEventListener('pointermove', callback.touchPad)
+element.rotate.addEventListener('pointermove', callback.touchPad)
+element.scrollPad.addEventListener('pointerover', callback.touchPad)
+element.scroll.addEventListener('pointerover', callback.touchPad)
+element.rotatePad.addEventListener('pointerover', callback.touchPad)
+element.rotate.addEventListener('pointerover', callback.touchPad)
+// パッドを離したのイベント
+element.scrollPad.addEventListener('pointerup', callback.releasePad)
+element.scroll.addEventListener('pointerup', callback.releasePad)
+element.rotatePad.addEventListener('pointerup', callback.releasePad)
+element.rotate.addEventListener('pointerup', callback.releasePad)
+element.scrollPad.addEventListener('pointerleave', callback.releasePad)
+element.scroll.addEventListener('pointerleave', callback.releasePad)
+element.rotatePad.addEventListener('pointerleave', callback.releasePad)
+element.rotate.addEventListener('pointerleave', callback.releasePad)
+element.scrollPad.addEventListener('pointerout', callback.releasePad)
+element.scroll.addEventListener('pointerout', callback.releasePad)
+element.rotatePad.addEventListener('pointerout', callback.releasePad)
+element.rotate.addEventListener('pointerout', callback.releasePad)
