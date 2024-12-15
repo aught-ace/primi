@@ -40,6 +40,7 @@ const element =
     texelDiv: document.querySelector('#texel-div'),
     saveForm: document.querySelector('#save-form'),
     exportForm: document.querySelector('#export-form'),
+    newButton: document.querySelector('#new'),
     scrollPad: document.querySelector('#scroll-pad'),
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
@@ -328,6 +329,14 @@ const callback =
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
     },
+    deleteCaches: () =>
+    {
+        if (!('serviceWorker' in navigator)) return
+        navigator.serviceWorker.getRegistration()
+        .then(registration => {
+            registration.unregister();
+        })
+    },
     preventDefault: (e) =>
     {
         e.stopPropagation()
@@ -342,6 +351,7 @@ const callback =
 
 // ロードとセーブのイベント
 element.saveForm.addEventListener('submit', callback.save)
+element.newButton.addEventListener('click', callback.deleteCaches)
 // 適用ボタンが押された時のイベント
 element.ruler3dForm.addEventListener('submit', callback.apply3d)
 element.ruler2dForm.addEventListener('submit', callback.apply2d)
