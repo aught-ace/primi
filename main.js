@@ -1,7 +1,7 @@
 // モジュールのインポート
-import * as Matrix from './draw/matrix.js'
-import * as Model from './draw/model.js'
-import * as Renderer from './draw/renderer.js'
+import * as Matrix from './drawer/matrix.js'
+import * as Model from './drawer/model.js'
+import * as Renderer from './drawer/renderer.js'
 
 // 要素
 const element =
