@@ -34,8 +34,8 @@ const element =
     ruler3dDiv: document.querySelector('#ruler-3d-div'),
     ruler2dDiv: document.querySelector('#ruler-2d-div'),
     texelDiv: document.querySelector('#texel-div'),
-    loadForm: document.querySelector('#load-form'),
     saveForm: document.querySelector('#save-form'),
+    exportForm: document.querySelector('#export-form'),
     scrollPad: document.querySelector('#scroll-pad'),
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
@@ -289,8 +289,8 @@ const callback =
 }
 
 // ロードとセーブのイベント
-element.loadForm.addEventListener('click', callback.load)
-element.saveForm.addEventListener('submit', callback.save)
+element.saveForm.addEventListener('click', callback.load)
+element.exportForm.addEventListener('submit', callback.save)
 // オブジェクト新規作成ボタンが押された時のイベント
 element.ruler2dForm.addEventListener('submit', callback.apply2d)
 // モード変更ボタンが押された時のイベント
