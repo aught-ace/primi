@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 a'
+const cacheName = 'Primi 0.0.0 e'
 const files =
 [
     './icon.png',
@@ -18,7 +18,7 @@ self.addEventListener('install', async(e) =>
     return cache.addAll(files)
 })
 
-// 更新時もう無いファイルは消したりする
+/*
 self.addEventListener('activate', (e) =>
 {
     const cacheWhitelist = [cacheName]
@@ -26,17 +26,38 @@ self.addEventListener('activate', (e) =>
         caches.keys().then((cacheNames) =>
         {
             return Promise.all(
-                cacheNames.map((cacheName) =>
+                cacheNames.map((n) =>
                 {
-                    if(cacheWhitelist.indexOf(cacheName) === -1)
-                        return caches.delete(cacheName)
+                    if(cacheWhitelist.indexOf(n) === -1)
+                        return caches.delete(n)
                 })
             )
         })
     )
 })
+*/
+
+// 更新時もう無いファイルは消す
+self.addEventListener('activate', (e) =>
+{
+    const cacheWhitelist = [cacheName]
+    e.waitUntil(
+      (async() => {
+        const cacheNames = await caches.keys()
+        await Promise.all(
+          cacheNames
+            .filter((n) => {
+                if(cacheWhitelist.indexOf(n) === -1)
+                    return caches.delete(n)
+            })
+            .map((n) => caches.delete(n)),
+        )
+      })(),
+    )
+})
 
 // リクエスト
+/*
 self.addEventListener('fetch', (e) =>
 {
     e.respondWith(
@@ -48,7 +69,8 @@ self.addEventListener('fetch', (e) =>
             const fetchRequest = e.request.clone()
             const fetchResponse = await fetch(fetchRequest)
     
-            if(!fetchResponse) return fetchResponse
+            if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic')
+                return fetchResponse
     
             const responseToCache = fetchResponse.clone()
             const cache = await caches.open(cacheName)
@@ -57,5 +79,28 @@ self.addEventListener('fetch', (e) =>
 
             return fetchResponse
         }
+    )
+})
+*/
+
+// リクエスト
+self.addEventListener('fetch', (e) =>
+{
+    e.respondWith(
+      (async() => {
+        const cache = await caches.open(cacheName)
+        const cachedResponse = await cache.match(e.request)
+        const networkResponsePromise = fetch(e.request)
+  
+        e.waitUntil(
+            (async() =>
+            {
+                const networkResponse = await networkResponsePromise
+                await cache.put(e.request, networkResponse.clone())
+            })(),
+        );
+  
+        return cachedResponse | networkResponsePromise
+      })(),
     )
 })
