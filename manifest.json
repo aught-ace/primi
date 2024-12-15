@@ -1,5 +1,5 @@
 {
-    "manifest_version": "1",
+    "manifest_version": "3",
     "short_name": "Primi",
     "name": "Primi",
     "description": "The Primitive 3D Modeler.",
