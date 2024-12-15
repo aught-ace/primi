@@ -1,13 +1,15 @@
 {
+    "manifest_version": "1",
     "short_name": "Primi",
     "name": "Primi",
+    "description": "The Primitive 3D Modeler.",
     "display": "fullscreen",
     "start_url": "index.html",
     "icons":
     [
         {
             "src": "icon.jpg",
-            "sizes": "256x256",
+            "sizes": "128x128",
             "type": "image/png"
         }
     ]
