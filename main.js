@@ -286,10 +286,13 @@ const callback =
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
     },
-    // その操作を禁止
-    prevent: (e) =>
+    preventDefault: (e) =>
     {
+        e.stopPropagation()
         e.preventDefault()
+    },
+    returnFalse: (e) =>
+    {
         return false
     },
 }
@@ -348,7 +351,15 @@ element.scrollPad.addEventListener('pointerleave', callback.releasePad)
 element.scroll.addEventListener('pointerleave', callback.releasePad)
 element.rotatePad.addEventListener('pointerleave', callback.releasePad)
 element.rotate.addEventListener('pointerleave', callback.releasePad)
-// メニュー禁止
-document.addEventListener('contextmenu', callback.prevent, { passive: false })
 // ダブルタップ禁止
-document.addEventListener('dblclick', callback.prevent, { passive: false })
+addEventListener('dblclick', callback.preventDefault, { passive: false })
+// メニュー禁止
+addEventListener('contextmenu', callback.returnFalse, { passive: false })
+
+// PWAの登録
+if ('serviceWorker' in navigator)
+{
+    navigator.serviceWorker.register('service-worker.js').catch((err) => {
+        console.error('Service Worker registration was failed: ', err);
+    })
+}
