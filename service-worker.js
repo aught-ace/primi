@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 t6'
+const cacheName = 'Primi 0.0.0 t7'
 const files =
 [
     './icon.png',
