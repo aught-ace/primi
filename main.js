@@ -286,6 +286,12 @@ const callback =
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
     },
+    // その操作を禁止
+    prevent: (e) =>
+    {
+        e.preventDefault()
+        return false
+    },
 }
 
 // ロードとセーブのイベント
@@ -311,27 +317,19 @@ element.depthBar.addEventListener('pointerdown', callback.touchSlider)
 element.depth.addEventListener('pointerdown', callback.touchSlider)
 element.depthBar.addEventListener('pointermove', callback.touchSlider)
 element.depth.addEventListener('pointermove', callback.touchSlider)
-element.depthBar.addEventListener('pointerover', callback.touchSlider)
-element.depth.addEventListener('pointerover', callback.touchSlider)
 element.timeBar.addEventListener('pointerdown', callback.touchSlider)
 element.time.addEventListener('pointerdown', callback.touchSlider)
 element.timeBar.addEventListener('pointermove', callback.touchSlider)
 element.time.addEventListener('pointermove', callback.touchSlider)
-element.timeBar.addEventListener('pointerover', callback.touchSlider)
-element.time.addEventListener('pointerover', callback.touchSlider)
 // バーを離したのイベント
 element.depthBar.addEventListener('pointerup', callback.releaseSlider)
 element.depth.addEventListener('pointerup', callback.releaseSlider)
 element.depthBar.addEventListener('pointerleave', callback.releaseSlider)
 element.depth.addEventListener('pointerleave', callback.releaseSlider)
-element.depthBar.addEventListener('pointerout', callback.releaseSlider)
-element.depth.addEventListener('pointerout', callback.releaseSlider)
 element.timeBar.addEventListener('pointerup', callback.releaseSlider)
 element.time.addEventListener('pointerup', callback.releaseSlider)
 element.timeBar.addEventListener('pointerleave', callback.releaseSlider)
 element.time.addEventListener('pointerleave', callback.releaseSlider)
-element.timeBar.addEventListener('pointerout', callback.releaseSlider)
-element.time.addEventListener('pointerout', callback.releaseSlider)
 // パッドを押したのイベント
 element.scrollPad.addEventListener('pointerdown', callback.touchPad)
 element.scroll.addEventListener('pointerdown', callback.touchPad)
@@ -341,10 +339,6 @@ element.scrollPad.addEventListener('pointermove', callback.touchPad)
 element.scroll.addEventListener('pointermove', callback.touchPad)
 element.rotatePad.addEventListener('pointermove', callback.touchPad)
 element.rotate.addEventListener('pointermove', callback.touchPad)
-element.scrollPad.addEventListener('pointerover', callback.touchPad)
-element.scroll.addEventListener('pointerover', callback.touchPad)
-element.rotatePad.addEventListener('pointerover', callback.touchPad)
-element.rotate.addEventListener('pointerover', callback.touchPad)
 // パッドを離したのイベント
 element.scrollPad.addEventListener('pointerup', callback.releasePad)
 element.scroll.addEventListener('pointerup', callback.releasePad)
@@ -354,7 +348,7 @@ element.scrollPad.addEventListener('pointerleave', callback.releasePad)
 element.scroll.addEventListener('pointerleave', callback.releasePad)
 element.rotatePad.addEventListener('pointerleave', callback.releasePad)
 element.rotate.addEventListener('pointerleave', callback.releasePad)
-element.scrollPad.addEventListener('pointerout', callback.releasePad)
-element.scroll.addEventListener('pointerout', callback.releasePad)
-element.rotatePad.addEventListener('pointerout', callback.releasePad)
-element.rotate.addEventListener('pointerout', callback.releasePad)
+// メニュー禁止
+document.addEventListener('contextmenu', callback.prevent, { passive: false })
+// ダブルタップ禁止
+document.addEventListener('dblclick', callback.prevent, { passive: false })
