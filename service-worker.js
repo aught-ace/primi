@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 j'
+const cacheName = 'Primi 0.0.0'
 const file =
 [
 	'index.html',
@@ -50,23 +50,30 @@ self.addEventListener('fetch', (e) =>
     // オンライン
     if(online)
     {
-        e.respondWith(
-          caches.match(e.request)
+        e.respondWith(caches
+            .match(e.request)
             .then((response) => {
+
+                // キャッシュにあればそのまま返す
                 if (response) return response
 
+                // 無い場合
                 return fetch(e.request).then((response) => {
                     cloneResponse = response.clone()
                     if(response)
                     {
+                        // ページが正しい状態
                         if(response && response.status == 200)
                         {
+                            // キャッシュに置く
                             caches
                                 .open(cacheName)
                                 .then((cache) => {
                                     cache.put(e.request, cloneResponse)
                                 })
+                        // ページがエラー状態
                         } else {
+                            console.error('Response Status: ' + response.status)
                             return response
                         }
                     }
