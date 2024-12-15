@@ -443,7 +443,8 @@ html
     font-family: sans-serif;
     line-height: 1em;
     box-sizing: border-box;
-    touch-action: none;
+    touch-action: pan-x pan-y;
+    -webkit-user-select: none;
     user-select: none;
     overflow-x: hidden;
     overflow-y: auto;
