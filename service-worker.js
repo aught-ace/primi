@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 t7'
+const cacheName = 'Primi 0.0.0 a'
 const files =
 [
     './icon.png',
@@ -8,6 +8,7 @@ const files =
 	'./drawer/model.js',
 	'./drawer/matrix.js',
 	'./drawer/renderer.js',
+    './manifest.json',
 ]
 
 // インストール

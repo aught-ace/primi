@@ -44,6 +44,7 @@ const element =
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
     rotate: document.querySelector('#rotate'),
+    all: document.querySelector('*'),
 }
 
 // 立体オブジェクト
@@ -75,8 +76,8 @@ element.name.value = object.name
 
 // 描画
 const renderer = new Renderer(element.canvas)
-renderer.clearFrame(0x00, 0x00, 0x00, 0xFF)
-renderer.clear(0x00, 0x00, 0x00, 0xFF)
+renderer.clearFrame(0.5, 0.5, 0.5, 1)
+renderer.clear(0.5, 0.5, 0.5, 1)
 
 // クラス追加
 const addClass = (element, className) =>
@@ -104,6 +105,22 @@ const callback =
         e.stopPropagation()
         e.preventDefault()
     },
+    apply3d: (e) =>
+    {
+        // フォーム送信をキャンセル
+        e.stopPropagation()
+        e.preventDefault()
+    
+        // 入力欄の値をオブジェクトにセット
+        object.name = element.name.value
+        object.left = element.left.value
+        object.right = element.right.value
+        object.top = element.top.value
+        object.bottom = element.bottom.value
+        object.near = element.near.value
+        object.far = element.far.value
+        object.timeLength = element.timeLength.value
+    },
     apply2d: (e) =>
     {
         // フォーム送信をキャンセル
@@ -123,7 +140,7 @@ const callback =
     changeMode: (e) =>
     {
         // クリックされている時
-        if(!(e.buttons & 1)) return
+        //if(!(e.buttons & 1)) return
     
         addClass(element.ruler3dDiv, 'none')
         addClass(element.ruler2dDiv, 'none')
@@ -178,9 +195,15 @@ const callback =
     },
     touchSlider: (e) =>
     {
-        // 左クリックされていない時は返す
-        if(!(e.buttons & 1)) return
         console.log(e)
+        e.preventDefault()
+
+        // 左クリックされていない時は返す
+        if(
+            e.type !== 'touchstart' &&
+            e.type !== 'touchmove' &&
+            !(e.buttons & 1)
+        ) return
     
         let innerElem, innerRect, outerRect
     
@@ -198,7 +221,11 @@ const callback =
         }
         else return
     
-        let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
+        let y = -1
+        if(e.clientY != undefined) y = e.clientY
+        if(e.targetTouches[0].clientY != undefined) y = e.targetTouches[0].clientY
+
+        let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
     
         if(ny < -1) ny = -1
         if(ny > 1) ny = 1
@@ -207,8 +234,14 @@ const callback =
     },
     releaseSlider: (e) =>
     {
-        // 押していない間にスライドして離れた時は返す
-        if(e.type !== 'pointerup' && !(e.buttons & 1)) return
+        e.preventDefault()
+        
+        if(
+            e.type !== 'touchend' &&
+            e.type !== 'touchcancel' &&
+            e.type !== 'pointerup' &&
+            !(e.buttons & 1)
+        ) return
 
         let innerElem
     
@@ -223,13 +256,17 @@ const callback =
         else return
     
         innerElem.style.top = '25%'
-
-        e.target.releasePointerCapture()
     },
     touchPad: (e) =>
     {
-        if(!(e.buttons & 1)) return
-    
+        e.preventDefault()
+
+        if(
+            e.type !== 'touchstart' &&
+            e.type !== 'touchmove' &&
+            !(e.buttons & 1)
+        ) return
+        
         let innerElem, innerRect, outerRect
     
         if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
@@ -246,8 +283,14 @@ const callback =
         }
         else return
     
-        let nx = (e.clientX - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
-        let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
+        let x = -1, y = -1
+        if(e.clientX != undefined) x = e.clientX
+        if(e.targetTouches[0].clientX != undefined) x = e.targetTouches[0].clientX
+        if(e.clientY != undefined) y = e.clientY
+        if(e.targetTouches[0].clientY != undefined) y = e.targetTouches[0].clientY
+
+        let nx = (x - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
+        let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
     
         const s = Math.sqrt(nx * nx + ny * ny)
         if(s > 1)
@@ -255,14 +298,20 @@ const callback =
             nx /= s
             ny /= s
         }
-    
+
         innerElem.style.left = (25 + nx * 25) + '%'
         innerElem.style.top = (25 + ny * 25) + '%'
     },
     releasePad: (e) =>
     {
-        // 押していない間にスライドして離れた時は返す
-        if(e.type !== 'pointerup' && !(e.buttons & 1)) return
+        e.preventDefault()
+        
+        if(
+            e.type !== 'touchend' &&
+            e.type !== 'touchcancel' &&
+            e.type !== 'pointerup' &&
+            !(e.buttons & 1)
+        ) return
     
         let innerElem
     
@@ -278,8 +327,6 @@ const callback =
     
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
-
-        e.target.releasePointerCapture()
     },
     preventDefault: (e) =>
     {
@@ -294,23 +341,17 @@ const callback =
 }
 
 // ロードとセーブのイベント
-element.saveForm.addEventListener('click', callback.load)
-element.exportForm.addEventListener('submit', callback.save)
-// オブジェクト新規作成ボタンが押された時のイベント
+element.saveForm.addEventListener('submit', callback.save)
+// 適用ボタンが押された時のイベント
+element.ruler3dForm.addEventListener('submit', callback.apply3d)
 element.ruler2dForm.addEventListener('submit', callback.apply2d)
 // モード変更ボタンが押された時のイベント
-element.ruler3dMode.addEventListener('pointerdown', callback.changeMode)
-element.vertex3dMode.addEventListener('pointerdown', callback.changeMode)
-element.spaceMode.addEventListener('pointerdown', callback.changeMode)
-element.ruler2dMode.addEventListener('pointerdown', callback.changeMode)
-element.vertex2dMode.addEventListener('pointerdown', callback.changeMode)
-element.texelMode.addEventListener('pointerdown', callback.changeMode)
-element.ruler3dMode.addEventListener('pointermove', callback.changeMode)
-element.vertex3dMode.addEventListener('pointermove', callback.changeMode)
-element.spaceMode.addEventListener('pointermove', callback.changeMode)
-element.ruler2dMode.addEventListener('pointermove', callback.changeMode)
-element.vertex2dMode.addEventListener('pointermove', callback.changeMode)
-element.texelMode.addEventListener('pointermove', callback.changeMode)
+element.ruler3dMode.addEventListener('click', callback.changeMode)
+element.vertex3dMode.addEventListener('click', callback.changeMode)
+element.spaceMode.addEventListener('click', callback.changeMode)
+element.ruler2dMode.addEventListener('click', callback.changeMode)
+element.vertex2dMode.addEventListener('click', callback.changeMode)
+element.texelMode.addEventListener('click', callback.changeMode)
 // バーを押したのイベント
 element.depthBar.addEventListener('pointerdown', callback.touchSlider)
 element.depth.addEventListener('pointerdown', callback.touchSlider)
@@ -320,6 +361,14 @@ element.depthBar.addEventListener('pointermove', callback.touchSlider)
 element.depth.addEventListener('pointermove', callback.touchSlider)
 element.timeBar.addEventListener('pointermove', callback.touchSlider)
 element.time.addEventListener('pointermove', callback.touchSlider)
+element.depthBar.addEventListener('touchstart', callback.touchSlider, { passive: false })
+element.depth.addEventListener('touchstart', callback.touchSlider, { passive: false })
+element.timeBar.addEventListener('touchstart', callback.touchSlider, { passive: false })
+element.time.addEventListener('touchstart', callback.touchSlider, { passive: false })
+element.depthBar.addEventListener('touchmove', callback.touchSlider, { passive: false })
+element.depth.addEventListener('touchmove', callback.touchSlider, { passive: false })
+element.timeBar.addEventListener('touchmove', callback.touchSlider, { passive: false })
+element.time.addEventListener('touchmove', callback.touchSlider, { passive: false })
 // バーを離したのイベント
 element.depthBar.addEventListener('pointerup', callback.releaseSlider)
 element.depth.addEventListener('pointerup', callback.releaseSlider)
@@ -337,6 +386,14 @@ element.depthBar.addEventListener('pointercancel', callback.releaseSlider)
 element.depth.addEventListener('pointercancel', callback.releaseSlider)
 element.timeBar.addEventListener('pointercancel', callback.releaseSlider)
 element.time.addEventListener('pointercancel', callback.releaseSlider)
+element.depthBar.addEventListener('touchend', callback.releaseSlider)
+element.depth.addEventListener('touchend', callback.releaseSlider)
+element.timeBar.addEventListener('touchend', callback.releaseSlider)
+element.time.addEventListener('touchend', callback.releaseSlider)
+element.depthBar.addEventListener('touchcancel', callback.releaseSlider)
+element.depth.addEventListener('touchcancel', callback.releaseSlider)
+element.timeBar.addEventListener('touchcancel', callback.releaseSlider)
+element.time.addEventListener('touchcancel', callback.releaseSlider)
 // パッドを押したのイベント
 element.scrollPad.addEventListener('pointerdown', callback.touchPad)
 element.scroll.addEventListener('pointerdown', callback.touchPad)
@@ -346,6 +403,14 @@ element.scrollPad.addEventListener('pointermove', callback.touchPad)
 element.scroll.addEventListener('pointermove', callback.touchPad)
 element.rotatePad.addEventListener('pointermove', callback.touchPad)
 element.rotate.addEventListener('pointermove', callback.touchPad)
+element.scrollPad.addEventListener('touchstart', callback.touchPad, { passive: false })
+element.scroll.addEventListener('touchstart', callback.touchPad, { passive: false })
+element.rotatePad.addEventListener('touchstart', callback.touchPad, { passive: false })
+element.rotate.addEventListener('touchstart', callback.touchPad, { passive: false })
+element.scrollPad.addEventListener('touchmove', callback.touchPad, { passive: false })
+element.scroll.addEventListener('touchmove', callback.touchPad, { passive: false })
+element.rotatePad.addEventListener('touchmove', callback.touchPad, { passive: false })
+element.rotate.addEventListener('touchmove', callback.touchPad, { passive: false })
 // パッドを離したのイベント
 element.scrollPad.addEventListener('pointerup', callback.releasePad)
 element.scroll.addEventListener('pointerup', callback.releasePad)
@@ -363,12 +428,27 @@ element.scrollPad.addEventListener('pointercancel', callback.releasePad)
 element.scroll.addEventListener('pointercancel', callback.releasePad)
 element.rotatePad.addEventListener('pointercancel', callback.releasePad)
 element.rotate.addEventListener('pointercancel', callback.releasePad)
+element.scrollPad.addEventListener('touchend', callback.releasePad)
+element.scroll.addEventListener('touchend', callback.releasePad)
+element.rotatePad.addEventListener('touchend', callback.releasePad)
+element.rotate.addEventListener('touchend', callback.releasePad)
+element.scrollPad.addEventListener('touchcancel', callback.releasePad)
+element.scroll.addEventListener('touchcancel', callback.releasePad)
+element.rotatePad.addEventListener('touchcancel', callback.releasePad)
+element.rotate.addEventListener('touchcancel', callback.releasePad)
 
-// ダブルタップ禁止
-document.addEventListener('dblclick', callback.preventDefault, { passive: false })
-// メニュー禁止
-document.addEventListener('contextmenu', callback.returnFalse, { passive: false })
-
+// 全ての要素に対して行う
+/*
+for(let i = 0; i < element.all.length; i++)
+{
+    // 選択禁止
+    element.all[i].addEventListener('selectstart', callback.returnFalse, { passive: false })
+    // ダブルタップ禁止
+    element.all[i].addEventListener('dblclick', callback.preventDefault, { passive: false })
+    // メニュー禁止
+    element.all[i].addEventListener('contextmenu', callback.returnFalse, { passive: false })
+}
+*/
 // PWAの登録
 if ('serviceWorker' in navigator)
 {
