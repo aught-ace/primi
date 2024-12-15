@@ -1,5 +1,5 @@
-const CACHE_NAME = 'Primi'
-const urlsToCache =
+const CACHE_NAME = 'Primi 0.0.0 t1'
+const files =
 [
 	'./manifest.json',
 	'./icon.png',
@@ -16,7 +16,7 @@ self.addEventListener('install', (e) => {
     e.waitUntil(caches
         .open(CACHE_NAME)
         .then((cache) => {
-            return cache.addAll(urlsToCache);
+            return cache.addAll(files);
         })
     )
 })

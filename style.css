@@ -69,37 +69,37 @@
     #canvas
     {
         grid-column: 1 / 17;
-        grid-row: 4 / 20;
+        grid-row: 5 / 21;
     }
     #mode-3d
     {
         grid-column: 1 / 9;
-        grid-row: 20 / 22;
+        grid-row: 21 / 23;
     }
     #mode-2d
     {
         grid-column: 9 / 17;
-        grid-row: 20 / 22;
+        grid-row: 21 / 23;
     }
     #scroll-pad
     {
         grid-column: 1 / 5;
-        grid-row: 23 / 27;
+        grid-row: 24 / 28;
     }
     #depth-bar
     {
         grid-column: 14 / 16;
-        grid-row: 23 / 27;
+        grid-row: 24 / 28;
     }
     #time-bar
     {
         grid-column: 2 / 4;
-        grid-row: 28 / 32;
+        grid-row: 29 / 33;
     }
     #rotate-pad
     {
         grid-column: 13 / 17;
-        grid-row: 28 / 32;
+        grid-row: 29 / 33;
     }
     #scroll,
     #rotate,
@@ -115,7 +115,7 @@
     #texel-div
     {
         grid-column: 5 / 13;
-        grid-row: 22 / 33;
+        grid-row: 23 / 33;
     }
 }
 
@@ -426,10 +426,15 @@ body
     background-color: #777;
     color: #FFF;
     font-size: 12pt;
-    overflow: hidden;
 }
+
+body,
 html
 {
+    -webkit-touch-callout: none;
+    touch-action: pan-x pan-y;
+    -webkit-user-select: none;
+    user-select: none;
     overflow: hidden;
 }
 

@@ -1,11 +1,15 @@
 // モジュールのインポート
-import * as Matrix from './drawer/matrix.js'
-import * as Model from './drawer/model.js'
-import * as Renderer from './drawer/renderer.js'
+import { Matrix } from './drawer/matrix.js'
+import { Model } from './drawer/model.js'
+import { Renderer } from './drawer/renderer.js'
+
+// モード
+let mode = 'vertex3d'
 
 // 要素
 const element =
 {
+    canvas: document.querySelector('#canvas'),
     ruler3dDiv: document.querySelector('#ruler-3d-div'),
     ruler2dDiv: document.querySelector('#ruler-2d-div'),
     ruler3dForm: document.querySelector('#ruler-3d-form'),
@@ -67,11 +71,12 @@ const object =
     width: 16,
     height: 16,
 }
-
-// モード
-let mode = 'vertex3d'
-
 element.name.value = object.name
+
+// 描画
+const renderer = new Renderer(element.canvas)
+renderer.clearFrame(0x00, 0x00, 0x00, 0xFF)
+renderer.clear(0x00, 0x00, 0x00, 0xFF)
 
 // クラス追加
 const addClass = (element, className) =>
@@ -175,6 +180,7 @@ const callback =
     {
         // 左クリックされていない時は返す
         if(!(e.buttons & 1)) return
+        console.log(e)
     
         let innerElem, innerRect, outerRect
     
@@ -201,13 +207,9 @@ const callback =
     },
     releaseSlider: (e) =>
     {
-        if(
-            (
-                e.type === 'pointerleave' ||
-                e.type === 'pointerout'
-            ) && !(e.buttons & 1)
-        ) return
-        
+        // 押していない間にスライドして離れた時は返す
+        if(e.type !== 'pointerup' && !(e.buttons & 1)) return
+
         let innerElem
     
         if(e.target.id === 'depth' || e.target.id === 'depth-bar')
@@ -221,16 +223,12 @@ const callback =
         else return
     
         innerElem.style.top = '25%'
+
+        e.target.releasePointerCapture()
     },
     touchPad: (e) =>
     {
-        if(
-            (
-                e.type === 'pointermove' ||
-                e.type === 'pointerover'
-            ) &&
-            !(e.buttons & 1)
-        ) return
+        if(!(e.buttons & 1)) return
     
         let innerElem, innerRect, outerRect
     
@@ -263,13 +261,8 @@ const callback =
     },
     releasePad: (e) =>
     {
-        // クリックせずに去った時は返す
-        if(
-            (
-                e.type === 'pointerout' ||
-                e.type === 'pointerleave'
-            ) && !(e.buttons & 1)
-        ) return
+        // 押していない間にスライドして離れた時は返す
+        if(e.type !== 'pointerup' && !(e.buttons & 1)) return
     
         let innerElem
     
@@ -285,6 +278,8 @@ const callback =
     
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
+
+        e.target.releasePointerCapture()
     },
     preventDefault: (e) =>
     {
@@ -293,6 +288,7 @@ const callback =
     },
     returnFalse: (e) =>
     {
+        e.stopPropagation()
         return false
     },
 }
@@ -318,21 +314,29 @@ element.texelMode.addEventListener('pointermove', callback.changeMode)
 // バーを押したのイベント
 element.depthBar.addEventListener('pointerdown', callback.touchSlider)
 element.depth.addEventListener('pointerdown', callback.touchSlider)
-element.depthBar.addEventListener('pointermove', callback.touchSlider)
-element.depth.addEventListener('pointermove', callback.touchSlider)
 element.timeBar.addEventListener('pointerdown', callback.touchSlider)
 element.time.addEventListener('pointerdown', callback.touchSlider)
+element.depthBar.addEventListener('pointermove', callback.touchSlider)
+element.depth.addEventListener('pointermove', callback.touchSlider)
 element.timeBar.addEventListener('pointermove', callback.touchSlider)
 element.time.addEventListener('pointermove', callback.touchSlider)
 // バーを離したのイベント
 element.depthBar.addEventListener('pointerup', callback.releaseSlider)
 element.depth.addEventListener('pointerup', callback.releaseSlider)
-element.depthBar.addEventListener('pointerleave', callback.releaseSlider)
-element.depth.addEventListener('pointerleave', callback.releaseSlider)
 element.timeBar.addEventListener('pointerup', callback.releaseSlider)
 element.time.addEventListener('pointerup', callback.releaseSlider)
+element.depthBar.addEventListener('pointerleave', callback.releaseSlider)
+element.depth.addEventListener('pointerleave', callback.releaseSlider)
 element.timeBar.addEventListener('pointerleave', callback.releaseSlider)
 element.time.addEventListener('pointerleave', callback.releaseSlider)
+element.depthBar.addEventListener('pointerout', callback.releaseSlider)
+element.depth.addEventListener('pointerout', callback.releaseSlider)
+element.timeBar.addEventListener('pointerout', callback.releaseSlider)
+element.time.addEventListener('pointerout', callback.releaseSlider)
+element.depthBar.addEventListener('pointercancel', callback.releaseSlider)
+element.depth.addEventListener('pointercancel', callback.releaseSlider)
+element.timeBar.addEventListener('pointercancel', callback.releaseSlider)
+element.time.addEventListener('pointercancel', callback.releaseSlider)
 // パッドを押したのイベント
 element.scrollPad.addEventListener('pointerdown', callback.touchPad)
 element.scroll.addEventListener('pointerdown', callback.touchPad)
@@ -351,15 +355,26 @@ element.scrollPad.addEventListener('pointerleave', callback.releasePad)
 element.scroll.addEventListener('pointerleave', callback.releasePad)
 element.rotatePad.addEventListener('pointerleave', callback.releasePad)
 element.rotate.addEventListener('pointerleave', callback.releasePad)
+element.scrollPad.addEventListener('pointerout', callback.releasePad)
+element.scroll.addEventListener('pointerout', callback.releasePad)
+element.rotatePad.addEventListener('pointerout', callback.releasePad)
+element.rotate.addEventListener('pointerout', callback.releasePad)
+element.scrollPad.addEventListener('pointercancel', callback.releasePad)
+element.scroll.addEventListener('pointercancel', callback.releasePad)
+element.rotatePad.addEventListener('pointercancel', callback.releasePad)
+element.rotate.addEventListener('pointercancel', callback.releasePad)
+
 // ダブルタップ禁止
-addEventListener('dblclick', callback.preventDefault, { passive: false })
+document.addEventListener('dblclick', callback.preventDefault, { passive: false })
 // メニュー禁止
-addEventListener('contextmenu', callback.returnFalse, { passive: false })
+document.addEventListener('contextmenu', callback.returnFalse, { passive: false })
 
 // PWAの登録
 if ('serviceWorker' in navigator)
 {
-    navigator.serviceWorker.register('service-worker.js').catch((err) => {
-        console.error('Service Worker registration was failed: ', err);
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register('service-worker.js').catch((err) => {
+            console.error('Service Worker registration was failed: ', err);
+        })
     })
 }
