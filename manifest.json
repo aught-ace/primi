@@ -1,5 +1,4 @@
 {
-    "manifest_version": "5",
     "short_name": "Primi",
     "name": "Primi",
     "id": "Primi",
@@ -29,5 +28,6 @@
             "sizes": "1600x800",
             "form_factor": "wide"
         }
-    ]
+    ],
+    "manifest_version": "2"
 }

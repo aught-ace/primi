@@ -196,7 +196,6 @@ const callback =
     },
     touchSlider: (e) =>
     {
-        console.log(e)
         e.preventDefault()
 
         // 左クリックされていない時は返す

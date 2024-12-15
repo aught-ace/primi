@@ -1,106 +1,98 @@
-const cacheName = 'Primi 0.0.0 f'
-const files =
+const cacheName = 'Primi 0.0.0 j'
+const file =
 [
-    './icon.png',
-	'./index.html',
-	'./style.css',
-	'./main.js',
-	'./drawer/model.js',
-	'./drawer/matrix.js',
-	'./drawer/renderer.js',
-    './manifest.json',
+    'icon.png',
+	'index.html',
+	'offline-nocache.html',
+	'style.css',
+	'main.js',
+	'drawer/model.js',
+	'drawer/matrix.js',
+	'drawer/renderer.js',
+]
+const cacheKey =
+[
+    cacheName
 ]
 
 // インストール
-self.addEventListener('install', async(e) =>
-{
-    const cache = await caches.open(cacheName)
-    return cache.addAll(files)
+self.addEventListener('install', function(event) {
+    event.waitUntil(
+        caches
+            .open(cacheName)
+            .then((cache) => {
+                return cache.addAll(file)
+            })
+    )
 })
 
-/*
-self.addEventListener('activate', (e) =>
-{
-    const cacheWhitelist = [cacheName]
-    e.waitUntil(
-        caches.keys().then((cacheNames) =>
-        {
+// 要らなくなったキャッシュを消す
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then((keys) => {
             return Promise.all(
-                cacheNames.map((n) =>
-                {
-                    if(cacheWhitelist.indexOf(n) === -1)
-                        return caches.delete(n)
+                keys.filter((key) => {
+                    return !cacheKey.includes(key)
+                }).map((key) => {
+                    return caches.delete(key)
                 })
             )
         })
     )
 })
-*/
 
-// 更新時もう無いファイルは消す
-self.addEventListener('activate', (e) =>
+// リクエスト
+self.addEventListener('fetch', (e) =>
 {
-    const cacheWhitelist = [cacheName]
-    e.waitUntil(
-      (async() => {
-        const cacheNames = await caches.keys()
-        await Promise.all(
-          cacheNames
-            .filter((n) => {
-                if(cacheWhitelist.indexOf(n) === -1)
-                    return caches.delete(n)
+    var online = navigator.onLine
+  
+    // オンライン
+    if(online)
+    {
+        e.respondWith(
+          caches.match(e.request)
+            .then((response) => {
+                if (response) return response
+
+                return fetch(e.request).then((response) => {
+                    cloneResponse = response.clone()
+                    if(response)
+                    {
+                        if(response && response.status == 200)
+                        {
+                            caches
+                                .open(cacheName)
+                                .then((cache) => {
+                                    cache.put(e.request, cloneResponse)
+                                })
+                        } else {
+                            return response
+                        }
+                    }
+                    return response
+                }).catch(function(err) {
+                    return console.error(err)
+                })
             })
-            .map((n) => caches.delete(n)),
         )
-      })(),
-    )
-})
+    }
+    // オフライン
+    else
+    {
+        e.respondWith(
+            caches
+                .match(e.request)
+                .then((response) =>
+                {
+                    if(response) return response
 
-// リクエスト
-/*
-self.addEventListener('fetch', (e) =>
-{
-    e.respondWith(
-        async() =>
-        {
-            const cacheResponse = await caches.match(e.request)
-            if (cacheResponse) return cacheResponse
-    
-            const fetchRequest = e.request.clone()
-            const fetchResponse = await fetch(fetchRequest)
-    
-            if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic')
-                return fetchResponse
-    
-            const responseToCache = fetchResponse.clone()
-            const cache = await caches.open(cacheName)
-    
-            cache.put(e.request, responseToCache)
-
-            return fetchResponse
-        }
-    )
-})
-*/
-
-// リクエスト
-self.addEventListener('fetch', (e) =>
-{
-    e.respondWith(
-      (async() => {
-        const cache = await caches.open(cacheName)
-        const cachedResponse = await cache.match(e.request)
-        const networkResponsePromise = fetch(e.request)
-  
-        e.waitUntil(
-            (async() =>
-            {
-                const networkResponse = await networkResponsePromise
-                await cache.put(e.request, networkResponse.clone())
-            })(),
-        );
-  
-        return cachedResponse | networkResponsePromise
-      })(),
-    )
+                    return caches
+                        .match('offline-nocache.html')
+                        .then((responseNodata) =>
+                        {
+                            return responseNodata
+                        })
+                })
+        )
+    }
 })
