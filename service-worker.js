@@ -1,14 +1,15 @@
 const cacheName = 'Primi 0.0.0 j'
 const file =
 [
-    'icon.png',
 	'index.html',
-	'offline-nocache.html',
 	'style.css',
 	'main.js',
+    'icon.png',
+    'apple-touch-icon.png',
 	'drawer/model.js',
 	'drawer/matrix.js',
 	'drawer/renderer.js',
+	'offline-nocache.html',
 ]
 const cacheKey =
 [
