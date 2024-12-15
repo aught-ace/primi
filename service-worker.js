@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Primi 0.0.0 t1'
+const CACHE_NAME = 'Primi 0.0.0 t2'
 const files =
 [
 	'./manifest.json',
