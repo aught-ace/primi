@@ -9,23 +9,37 @@
     </head>
     <body>
         <div id="editor">
-            <div id="file">
-                <form id="file-form" action="">
-                    <input id="new" value="New" type="button">
-                    <input id="load" value="Load" type="button">
+            <div id="load-div">
+                <form id="load-form" action="">
+                    <input
+                        id="new" value="New" type="button"><input
+                        id="load" value="Load" type="button">
+                    <input id="inport" value="Inport" type="button" disabled>
+                </form>
+            </div>
+            <div id="save-div">
+                <form id="save-form" action="">
                     <input
                         id="name" value="" autocomplete="on" type="text"><input
                         id="save" value="Save" type="submit">
+                    <input
+                        id="export-glb" value="Export GLB" type="button" disabled><input
+                        id="export-vrm" value="Export VRM" type="button" disabled>
                 </form>
             </div>
-            <div id="mode">
+            <div id="mode-3d">
+                3D
                 <span
-                    id="vertex-3d-mode" class="radio-button selected">Vertex3D</span><span
+                    id="vertex-3d-mode" class="radio-button selected">Vertex</span><span
                     id="space-mode" class="radio-button">Space</span><span
-                    id="ruler-3d-mode" class="radio-button">Ruler3D</span><span
-                    id="vertex-2d-mode" class="radio-button">Vertex2D</span><span
+                    id="ruler-3d-mode" class="radio-button">Param</span>
+            </div>
+            <div id="mode-2d">
+                2D
+                <span
+                    id="vertex-2d-mode" class="radio-button">Vertex</span><span
                     id="texel-mode" class="radio-button">Texel</span><span
-                    id="ruler-2d-mode" class="radio-button">Ruler2D</span>
+                    id="ruler-2d-mode" class="radio-button">Param</span>
             </div>
 
             <!--div id="time-bar">
@@ -33,7 +47,11 @@
             </div-->
             <canvas id="canvas"></canvas>
             <div id="depth-bar">
-                <div id="depth" style="top:calc(50% - 1em);">0</div>
+                <div id="depth" style="top:25%;">Depth</div>
+            </div>
+            
+            <div id="time-bar">
+                <div id="time" style="top:25%;">Time</div>
             </div>
             
             <div id="scroll-pad">
@@ -61,6 +79,10 @@
                             <input id="near" value="-7" min="-255" max="255" type="number"> -
                             <input id="far" value="7" min="-255" max="255" type="number">
                         </dd>
+                        <dt>Appry</dt>
+                        <dd>
+                            <input value="Appry" id="apply-3d" type="button">
+                        </dd>
                     </dl>
                 </form>
             </div>
@@ -72,6 +94,10 @@
                         <dd><input id="texture-width" value="16" min="1" max="256" type="number"></dd>
                         <dt>Height</dt>
                         <dd><input id="texture-height" value="16" min="1" max="256" type="number"></dd>
+                        <dt>Appry</dt>
+                        <dd>
+                            <input value="Appry" id="apply-2d" type="button">
+                        </dd>
                     </dl>
                 </form>
             </div>

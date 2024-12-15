@@ -27,12 +27,15 @@ const element =
     texelMode: document.querySelector('#texel-mode'),
     depthBar: document.querySelector('#depth-bar'),
     depth: document.querySelector('#depth'),
+    timeBar: document.querySelector('#time-bar'),
+    time: document.querySelector('#time'),
     vertexDiv: document.querySelector('#vertex-div'),
     spaceDiv: document.querySelector('#space-div'),
     ruler3dDiv: document.querySelector('#ruler-3d-div'),
     ruler2dDiv: document.querySelector('#ruler-2d-div'),
     texelDiv: document.querySelector('#texel-div'),
-    fileForm: document.querySelector('#file-form'),
+    loadForm: document.querySelector('#load-form'),
+    saveForm: document.querySelector('#save-form'),
     scrollPad: document.querySelector('#scroll-pad'),
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
@@ -82,13 +85,21 @@ const removeClass = (element, className) =>
 }
 
 // セーブボタンが押された時
+const loadCallback = (e) =>
+{
+    // フォーム送信をキャンセル
+    e.stopPropagation()
+    e.preventDefault()
+}
+element.loadForm.addEventListener('click', loadCallback)
+// セーブボタンが押された時
 const saveCallback = (e) =>
 {
     // フォーム送信をキャンセル
     e.stopPropagation()
     e.preventDefault()
 }
-element.fileForm.addEventListener('submit', saveCallback)
+element.saveForm.addEventListener('submit', saveCallback)
 
 // オブジェクト新規作成ボタンが押された時
 const setCallback = (e) =>
@@ -179,108 +190,126 @@ element.ruler2dMode.addEventListener('pointermove', changeModeCallback)
 element.vertex2dMode.addEventListener('pointermove', changeModeCallback)
 element.texelMode.addEventListener('pointermove', changeModeCallback)
 
-// 時間バー
 /*
-const timeBarMoveCallback = (e) =>
-{
-    // クリックされていない時は返す
-    if(!(e.buttons & 1)) return
-
-    let t
-    if(e.target.id === 'time-bar')
-        t = (e.offsetY - element.time.offsetHeight / 2) / element.timeBar.offsetHeight
-    if(e.target.id === 'time')
-        t = (e.clientY - element.timeBar.offsetTop - element.time.offsetHeight / 2) / element.timeBar.offsetHeight
-    let s = (t * (15 + 1)) / (15 + 1)
-    let c = (1 - t) * (15 + 1) - 1
-    s = Math.max(0, Math.min(s, 1 - element.time.offsetHeight / element.timeBar.offsetHeight))
-    c = Math.max(object.near, Math.min(c, 15))
-    element.time.style.top = (s * 100) + '%'
-    element.time.textContent = Math.round(c)
-}
-element.timeBar.addEventListener('pointerdown', timeBarMoveCallback)
-element.time.addEventListener('pointerdown', timeBarMoveCallback)
-element.timeBar.addEventListener('pointermove', timeBarMoveCallback)
-element.time.addEventListener('pointermove', timeBarMoveCallback)
-const timeBarUpCallback = (e) =>
-{
-    // クリックされている時は返す
-    if(e.buttons & 1) return
-
-    let t
-    if(e.target.id === 'time-bar')
-        t = (e.offsetY - element.time.offsetHeight / 2) / element.timeBar.offsetHeight
-    if(e.target.id === 'time')
-        t = (e.clientY - element.timeBar.offsetTop - element.time.offsetHeight / 2) / element.timeBar.offsetHeight
-    let s = Math.round(t * (15 + 1)) / (15 + 1)
-    let c = Math.round((1 - t) * (15 + 1) - 1)
-    s = Math.max(0, Math.min(s, 1 - element.time.offsetHeight / element.timeBar.offsetHeight))
-    c = Math.max(object.near, Math.min(c, 15))
-    element.time.style.top = (s * 100) + '%'
-    element.time.textContent = c
-}
-element.timeBar.addEventListener('pointerup', timeBarUpCallback)
-element.time.addEventListener('pointerup', timeBarUpCallback)
-*/
-
 const getDepthInput = (clientY) =>
 {
     const depthRect = element.depth.getBoundingClientRect()
     const depthBarRect = element.depthBar.getBoundingClientRect()
 
-    const n = (clientY - depthBarRect.top - depthRect.height / 2) / depthBarRect.height
-    const t = Math.min(Math.max(0, n), 1 - depthRect.height / depthBarRect.height)
-    const c = Math.round(Math.min(Math.max(
-        object.near,
-        (1 - n) * (object.far - object.near + 1) + object.near - 1),
-        object.far))
-    const r = Math.round(t * (object.far - object.near + 1)) / (object.far - object.near + 1)
+    // 入力された位置
+    const input = Math.min(Math.max(
+        0,
+        (clientY - depthBarRect.top - depthRect.height / 2) / (depthBarRect.height - depthRect.height)),
+        1
+    )
+    // 上からの位置
+    const top = input * (1 - depthRect.height / depthBarRect.height)
+    // つまみ上に書く数字
+    const content = Math.round((1 - input) * (object.far - object.near) + object.near)
+    // 離した時にフィットさせる丸めた位置
+    const roundTop =
+        Math.round(input * (object.far - object.near)) /
+        (object.far - object.near) * (1 - depthRect.height / depthBarRect.height)
 
     const o =
     {
-        top: t * 100,
-        content: c,
-        roundTop: r * 100,
+        top: top * 100,
+        content: content,
+        roundTop: roundTop * 100,
     }
     return o
 }
+*/
 
-// 深度バー
+// バーを押した
 const depthBarMoveCallback = (e) =>
 {
     // 左クリックされていない時は返す
     if(!(e.buttons & 1)) return
 
-    const d = getDepthInput(e.clientY)
+    let innerElem, innerRect, outerRect
 
-    element.depth.style.top = d.top + '%'
-    element.depth.textContent = d.content
+    if(e.target.id === 'depth' || e.target.id === 'depth-bar')
+    {
+        innerElem = element.depth
+        innerRect = element.depth.getBoundingClientRect()
+        outerRect = element.depthBar.getBoundingClientRect()
+    }
+    else if(e.target.id === 'time' || e.target.id === 'time-bar')
+    {
+        innerElem = element.time
+        innerRect = element.time.getBoundingClientRect()
+        outerRect = element.timeBar.getBoundingClientRect()
+    }
+    else return
+
+    let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
+
+    if(ny < -1) ny = -1
+    if(ny > 1) ny = 1
+
+    innerElem.style.top = (25 + ny * 25) + '%'
 }
 element.depthBar.addEventListener('pointerdown', depthBarMoveCallback)
 element.depth.addEventListener('pointerdown', depthBarMoveCallback)
 element.depthBar.addEventListener('pointermove', depthBarMoveCallback)
 element.depth.addEventListener('pointermove', depthBarMoveCallback)
+element.depthBar.addEventListener('pointerover', depthBarMoveCallback)
+element.depth.addEventListener('pointerover', depthBarMoveCallback)
+element.timeBar.addEventListener('pointerdown', depthBarMoveCallback)
+element.time.addEventListener('pointerdown', depthBarMoveCallback)
+element.timeBar.addEventListener('pointermove', depthBarMoveCallback)
+element.time.addEventListener('pointermove', depthBarMoveCallback)
+element.timeBar.addEventListener('pointerover', depthBarMoveCallback)
+element.time.addEventListener('pointerover', depthBarMoveCallback)
+// バーを離した
 const depthBarUpCallback = (e) =>
 {
-    // クリックせずに去った時は返す
-    if(e.type === 'pointerleave' && !(e.buttons & 1)) return
+    if(
+        (
+            e.type === 'pointerleave' ||
+            e.type === 'pointerout'
+        ) && !(e.buttons & 1)
+    ) return
     
-    const d = getDepthInput(e.clientY)
+    let innerElem
 
-    element.depth.style.top = d.roundTop + '%'
-    element.depth.textContent = d.content
+    if(e.target.id === 'depth' || e.target.id === 'depth-bar')
+    {
+        innerElem = element.depth
+    }
+    else if(e.target.id === 'time' || e.target.id === 'time-bar')
+    {
+        innerElem = element.time
+    }
+    else return
+
+    innerElem.style.top = '25%'
 }
 element.depthBar.addEventListener('pointerup', depthBarUpCallback)
 element.depth.addEventListener('pointerup', depthBarUpCallback)
 element.depthBar.addEventListener('pointerleave', depthBarUpCallback)
 element.depth.addEventListener('pointerleave', depthBarUpCallback)
+element.depthBar.addEventListener('pointerout', depthBarUpCallback)
+element.depth.addEventListener('pointerout', depthBarUpCallback)
+element.timeBar.addEventListener('pointerup', depthBarUpCallback)
+element.time.addEventListener('pointerup', depthBarUpCallback)
+element.timeBar.addEventListener('pointerleave', depthBarUpCallback)
+element.time.addEventListener('pointerleave', depthBarUpCallback)
+element.timeBar.addEventListener('pointerout', depthBarUpCallback)
+element.time.addEventListener('pointerout', depthBarUpCallback)
 
 
 // パッドを押した
 const padMoveCallback = (e) =>
 {
-    // 左クリックされていない時は返す
-    if(!(e.buttons & 1)) return
+    if(
+        (
+            e.type === 'pointermove' ||
+            e.type === 'pointerover'
+        ) &&
+        !(e.buttons & 1)
+    ) return
 
     let innerElem, innerRect, outerRect
 
@@ -296,19 +325,20 @@ const padMoveCallback = (e) =>
         innerRect = element.rotate.getBoundingClientRect()
         outerRect = element.rotatePad.getBoundingClientRect()
     }
+    else return
 
-    let nx = (e.clientX - outerRect.left - innerRect.width / 2) / outerRect.width * 2 - 0.5
-    let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 2 - 0.5
+    let nx = (e.clientX - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
+    let ny = (e.clientY - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
 
     const s = Math.sqrt(nx * nx + ny * ny)
-    if(s > 0.5)
+    if(s > 1)
     {
-        nx /= s * 2
-        ny /= s * 2
+        nx /= s
+        ny /= s
     }
 
-    innerElem.style.left = (25 + nx * 50) + '%'
-    innerElem.style.top = (25 + ny * 50) + '%'
+    innerElem.style.left = (25 + nx * 25) + '%'
+    innerElem.style.top = (25 + ny * 25) + '%'
 }
 element.scrollPad.addEventListener('pointerdown', padMoveCallback)
 element.scroll.addEventListener('pointerdown', padMoveCallback)
@@ -318,11 +348,21 @@ element.scrollPad.addEventListener('pointermove', padMoveCallback)
 element.scroll.addEventListener('pointermove', padMoveCallback)
 element.rotatePad.addEventListener('pointermove', padMoveCallback)
 element.rotate.addEventListener('pointermove', padMoveCallback)
+element.scrollPad.addEventListener('pointerover', padMoveCallback)
+element.scroll.addEventListener('pointerover', padMoveCallback)
+element.rotatePad.addEventListener('pointerover', padMoveCallback)
+element.rotate.addEventListener('pointerover', padMoveCallback)
+
 // パッドを離した
 const padUpCallback = (e) =>
 {
     // クリックせずに去った時は返す
-    if(e.type === 'pointerleave' && !(e.buttons & 1)) return
+    if(
+        (
+            e.type === 'pointerout' ||
+            e.type === 'pointerleave'
+        ) && !(e.buttons & 1)
+    ) return
 
     let innerElem
 
@@ -334,6 +374,7 @@ const padUpCallback = (e) =>
     {
         innerElem = element.rotate
     }
+    else return
 
     innerElem.style.left = '25%'
     innerElem.style.top = '25%'
@@ -346,3 +387,7 @@ element.scrollPad.addEventListener('pointerleave', padUpCallback)
 element.scroll.addEventListener('pointerleave', padUpCallback)
 element.rotatePad.addEventListener('pointerleave', padUpCallback)
 element.rotate.addEventListener('pointerleave', padUpCallback)
+element.scrollPad.addEventListener('pointerout', padUpCallback)
+element.scroll.addEventListener('pointerout', padUpCallback)
+element.rotatePad.addEventListener('pointerout', padUpCallback)
+element.rotate.addEventListener('pointerout', padUpCallback)
