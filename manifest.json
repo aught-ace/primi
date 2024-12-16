@@ -1,9 +1,9 @@
 {
-    "short_name": "Primi",
-    "name": "Primi",
-    "id": "Primi",
+    "short_name": "Primitive 3D",
+    "name": "Primitive 3D",
+    "id": "primitive-3d",
     "description": "The Primitive 3D Modeler.",
-    "theme_color": "#888888",
+    "theme_color": "#777777",
     "background_color": "#777777",
     "display": "fullscreen",
     "start_url": "index.html",

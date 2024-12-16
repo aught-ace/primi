@@ -18,28 +18,25 @@
                     <input
                         id="name" value="" autocomplete="on" type="text"><input
                         id="save" value="Save" type="submit">
-                    <input id="load" value="Load" type="button">
-                    <input id="new" value="New" type="button">
                 </form>
             </div>
-            <div id="export-div">
-                <form id="export-form" action="">
-                    <input id="export-glb" value="Export GLB" type="button" disabled>
-                    <input id="export-vrm" value="Export VRM" type="button" disabled>
-                    <input id="inport" value="Inport" type="button" disabled>
-                </form>
+            <div id="load-div">
+                <input id="load" value="Load" type="button">
+                <input id="new" value="New" type="button">
+                <input id="import" value="Imp" type="button" disabled>
+                <input id="export" value="Exp" type="button" disabled>
             </div>
             <div id="mode-3d">
                 3D
                 <span
-                    id="vertex-3d-mode" class="radio-button selected">Vertex</span><span
+                    id="vertex-3d-mode" class="radio-button selected">Vert</span><span
                     id="space-mode" class="radio-button">Space</span><span
                     id="ruler-3d-mode" class="radio-button">Param</span>
             </div>
             <div id="mode-2d">
                 2D
                 <span
-                    id="vertex-2d-mode" class="radio-button">Vertex</span><span
+                    id="vertex-2d-mode" class="radio-button">Vert</span><span
                     id="texel-mode" class="radio-button">Texel</span><span
                     id="ruler-2d-mode" class="radio-button">Param</span>
             </div>
@@ -80,7 +77,7 @@
                         </dd>
                         <dt>Appry</dt>
                         <dd>
-                            <input value="Appry" id="apply-3d" type="button">
+                            <div id="apply-3d" class="new-item button">Apply</div>
                         </dd>
                     </dl>
                 </form>
@@ -95,7 +92,7 @@
                         <dd><input id="texture-height" value="16" min="1" max="256" type="number"></dd>
                         <dt>Appry</dt>
                         <dd>
-                            <input value="Appry" id="apply-2d" type="button">
+                            <div id="apply-2d" class="new-item button">Apply</div>
                         </dd>
                     </dl>
                 </form>
@@ -103,11 +100,11 @@
 
             <div id="vertex-div">
                 <div id="vertice-list"></div>
-                <span id="new-vertex" class="button">New Vertex</span>
+                <div id="new-vertex" class="new-item button">New Vertex</div>
             </div>
             <div id="space-div" class="none">
                 <div id="space-list"></div>
-                <span id="new-space" class="button">New Space</span>
+                <div id="new-space" class="new-item button">New Space</div>
             </div>
             <div id="texel-div" class="none">
             </div>

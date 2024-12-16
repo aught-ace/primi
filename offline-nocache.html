@@ -8,9 +8,25 @@
         <title>Offline & No Cache - Primi</title>
 	    <link href="./icon.png" rel="icon">
 	    <link href="./style.css" rel="stylesheet">
+        <link href="./manifest.json" rel="manifest">
+        <link href="./apple-touch-icon.png" rel="apple-touch-icon">
     </head>
     <body>
         <h1>Offline & No Cache</h1>
-        <p>オフラインでかつキャッシュがありません。</p>
+        <p>
+            オフラインでかつキャッシュがありません。
+            オンライン状態で読み込んでください。
+            次回からはオフラインでも利用できます。
+        </p>
+        <script defer>
+            if('serviceWorker' in navigator)
+            {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./service-worker.js').catch((err) => {
+                        console.error('Service Worker registration was failed: ', err)
+                    })
+                })
+            }
+        </script>
     </body>
 </html>
