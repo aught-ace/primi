@@ -2,6 +2,7 @@
     "short_name": "Primitive 3D",
     "name": "Primitive 3D",
     "id": "primitive-3d",
+    "version": "0.0.1",
     "description": "The Primitive 3D Modeler.",
     "theme_color": "#777777",
     "background_color": "#777777",
