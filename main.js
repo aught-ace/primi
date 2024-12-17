@@ -223,7 +223,7 @@ const callback =
     
         let y = -1
         if(e.clientY != undefined) y = e.clientY
-        if(e.targetTouches[0].clientY != undefined) y = e.targetTouches[0].clientY
+        if(e.targetTouches != undefined) y = e.targetTouches[0].clientY
 
         let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
     
@@ -285,9 +285,9 @@ const callback =
     
         let x = -1, y = -1
         if(e.clientX != undefined) x = e.clientX
-        if(e.targetTouches[0].clientX != undefined) x = e.targetTouches[0].clientX
+        if(e.targetTouches != undefined) x = e.targetTouches[0].clientX
         if(e.clientY != undefined) y = e.clientY
-        if(e.targetTouches[0].clientY != undefined) y = e.targetTouches[0].clientY
+        if(e.targetTouches != undefined) y = e.targetTouches[0].clientY
 
         let nx = (x - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
         let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1

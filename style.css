@@ -85,22 +85,22 @@
     #scroll-pad
     {
         grid-column: 9 / 13;
-        grid-row: 22 / 26;
+        grid-row: 23 / 27;
     }
     #depth-bar
     {
         grid-column: 14 / 16;
-        grid-row: 22 / 26;
+        grid-row: 23 / 27;
     }
     #time-bar
     {
         grid-column: 9 / 11;
-        grid-row: 27 / 31;
+        grid-row: 28 / 32;
     }
     #rotate-pad
     {
         grid-column: 12 / 16;
-        grid-row: 27 / 31;
+        grid-row: 28 / 32;
     }
     #ruler-3d-div,
     #ruler-2d-div,
@@ -108,7 +108,7 @@
     #space-div,
     #texel-div
     {
-        grid-column: 1 / 8;
+        grid-column: 1 / 9;
         grid-row: 21 / 33;
     }
 }
@@ -203,18 +203,44 @@
 #space-div,
 #texel-div
 {
-    padding: 0.25em;
+    padding: 0.25em 0.25em 0 0.25em;
 }
 
-#mode-3d,
-#mode-2d
+/* モード */
+.label
 {
+    width: 3em;
+    height: 2em;
+    line-height: 2em;
     text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+}
+#ruler-3d-mode,
+#ruler-2d-mode,
+#vertex-3d-mode,
+#vertex-2d-mode,
+#space-mode,
+#texel-mode
+{
+    width: calc((100% - 3em) / 3);
 }
 
+/* ファイル関係のボタン */
 #name
 {
-    width: 10em;
+    width: calc(100% - 4em);
+}
+#save
+{
+    width: 4em;
+}
+#new,
+#load,
+#import,
+#export
+{
+    width: calc((100% - 1em) / 4)
 }
 
 /* キャンバス*/
@@ -280,14 +306,16 @@
     border-radius: 0 0.5em 0.5em 0;
 }
 
-/* spanでできたボタン */
+/* spanでできたラジオボタン */
 .radio-button
 {
     background-color: #666;
     color: #FFF;
-    padding: 1em;
+    padding: 1.25em 0.5em;
     border-style: none;
+    text-align: center;
     vertical-align: middle;
+    height: 3.5em;
     display: inline-block;
 }
 #mode-2d #vertex-2d-mode,
@@ -311,9 +339,11 @@
 {
     background-color: #666;
     color: #FFF;
-    padding: 1em 0.5em;
+    padding: 0 0.5em;
+    padding: 1.25em 0.5em;
     border-style: none;
     border-radius: 0.5em;
+    height: 3.5em;
     vertical-align: middle;
     display: inline-block;
 }
@@ -347,13 +377,13 @@ input[type="number"]
     border-style: none;
     border-width: 0;
     border-radius: 0.5em;
+    height: 3.5em;
     vertical-align: middle;
     outline: none;
-    height: 3em;
 }
 input[type="number"]
 {
-    width: 5em;
+    width: 6em;
 }
 
 /* ボタン */
@@ -364,8 +394,9 @@ input[type="submit"]
     color: #FFF;
     border-style: none;
     border-width: 0;
-    padding: 1em 0.5em;
+    padding: 0 0.5em;
     border-radius: 0.5em;
+    height: 3.5em;
     vertical-align: middle;
     outline: none;
 }
@@ -432,16 +463,15 @@ body
 {
     background-color: #777;
     color: #FFF;
-    font-size: 12pt;
 }
 
 body,
 html
 {
-    /*-webkit-touch-callout: none;
+    -webkit-touch-callout: none;
     touch-action: manipulation;
     -webkit-user-select: none;
-    user-select: none;*/
+    user-select: none;
     overflow: hidden;
     overscroll-behavior-y: none;
 }
@@ -455,13 +485,14 @@ html
     font-family: sans-serif;
     font-size: 1em;
     line-height: 1em;
+    word-spacing: 0.015625em;
     box-sizing: border-box;
     scrollbar-color: #AAA #888;
     scrollbar-width: 0.5em;
     overflow-x: hidden;
     overflow-y: auto;
-    /*-webkit-touch-callout: none;
-    touch-action: manipulation;*/
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
 }
