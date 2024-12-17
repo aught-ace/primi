@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 t'
+const cacheName = 'Primi 0.0.0 a'
 const file =
 [
 	'index.html',
@@ -45,7 +45,7 @@ self.addEventListener('activate', event => {
 // リクエスト
 self.addEventListener('fetch', (e) =>
 {
-    var online = navigator.onLine
+    const online = navigator.onLine
   
     // オンライン
     if(online)
