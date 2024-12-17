@@ -4,8 +4,8 @@
     "id": "primitive-3d",
     "version": "0.0.1",
     "description": "The Primitive 3D Modeler.",
-    "theme_color": "#777777",
-    "background_color": "#777777",
+    "theme_color": "#AAAAAA",
+    "background_color": "#666666",
     "display": "fullscreen",
     "start_url": "index.html",
     "icons":
