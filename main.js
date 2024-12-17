@@ -10,10 +10,10 @@ let mode = 'vertex3d'
 const element =
 {
     canvas: document.querySelector('#canvas'),
-    ruler3dDiv: document.querySelector('#ruler-3d-div'),
-    ruler2dDiv: document.querySelector('#ruler-2d-div'),
-    ruler3dForm: document.querySelector('#ruler-3d-form'),
-    ruler2dForm: document.querySelector('#ruler-2d-form'),
+    param3dDiv: document.querySelector('#param-3d-div'),
+    param2dDiv: document.querySelector('#param-2d-div'),
+    param3dForm: document.querySelector('#param-3d-form'),
+    param2dForm: document.querySelector('#param-2d-form'),
     name: document.querySelector('#name'),
     left: document.querySelector('#left'),
     right: document.querySelector('#right'),
@@ -22,21 +22,27 @@ const element =
     near: document.querySelector('#near'),
     far: document.querySelector('#far'),
     timeLength: document.querySelector('#time-length'),
-    ruler: document.querySelector('#ruler'),
-    ruler3dMode: document.querySelector('#ruler-3d-mode'),
-    ruler2dMode: document.querySelector('#ruler-2d-mode'),
+    param: document.querySelector('#param'),
+    param3dMode: document.querySelector('#param-3d-mode'),
+    param2dMode: document.querySelector('#param-2d-mode'),
     vertex3dMode: document.querySelector('#vertex-3d-mode'),
-    spaceMode: document.querySelector('#space-mode'),
+    matrixMode: document.querySelector('#matrix-mode'),
+    surfaceMode: document.querySelector('#surface-mode'),
     vertex2dMode: document.querySelector('#vertex-2d-mode'),
     texelMode: document.querySelector('#texel-mode'),
+    animation3dMode: document.querySelector('#animation-3d-mode'),
+    animation2dMode: document.querySelector('#animation-2d-mode'),
     depthBar: document.querySelector('#depth-bar'),
     depth: document.querySelector('#depth'),
     timeBar: document.querySelector('#time-bar'),
     time: document.querySelector('#time'),
+    surfaceDiv: document.querySelector('#surface-div'),
     vertexDiv: document.querySelector('#vertex-div'),
-    spaceDiv: document.querySelector('#space-div'),
-    ruler3dDiv: document.querySelector('#ruler-3d-div'),
-    ruler2dDiv: document.querySelector('#ruler-2d-div'),
+    matrixDiv: document.querySelector('#matrix-div'),
+    param3dDiv: document.querySelector('#param-3d-div'),
+    param2dDiv: document.querySelector('#param-2d-div'),
+    animation3dDiv: document.querySelector('#animation-3d-div'),
+    animation2dDiv: document.querySelector('#animation-2d-div'),
     texelDiv: document.querySelector('#texel-div'),
     saveForm: document.querySelector('#save-form'),
     exportForm: document.querySelector('#export-form'),
@@ -140,58 +146,79 @@ const callback =
     },
     changeMode: (e) =>
     {
-        // クリックされている時
-        //if(!(e.buttons & 1)) return
-    
-        addClass(element.ruler3dDiv, 'none')
-        addClass(element.ruler2dDiv, 'none')
+        addClass(element.animation3dDiv, 'none')
+        addClass(element.animation2dDiv, 'none')
+        addClass(element.param3dDiv, 'none')
+        addClass(element.param2dDiv, 'none')
         addClass(element.vertexDiv, 'none')
-        addClass(element.spaceDiv, 'none')
+        addClass(element.surfaceDiv, 'none')
+        addClass(element.matrixDiv, 'none')
         addClass(element.texelDiv, 'none')
     
-        removeClass(element.ruler3dMode, 'selected')
-        removeClass(element.ruler2dMode, 'selected')
+        removeClass(element.param3dMode, 'selected')
+        removeClass(element.param2dMode, 'selected')
         removeClass(element.vertex3dMode, 'selected')
         removeClass(element.vertex2dMode, 'selected')
-        removeClass(element.spaceMode, 'selected')
+        removeClass(element.matrixMode, 'selected')
         removeClass(element.texelMode, 'selected')
+        removeClass(element.surfaceMode, 'selected')
+        removeClass(element.animation3dMode, 'selected')
+        removeClass(element.animation2dMode, 'selected')
     
-        if(e.target.id === 'ruler-3d-mode') mode = 'ruler3d'
+        if(e.target.id === 'param-3d-mode') mode = 'param3d'
         if(e.target.id === 'vertex-3d-mode') mode = 'vertex3d'
-        if(e.target.id === 'space-mode') mode = 'space'
-        if(e.target.id === 'ruler-2d-mode') mode = 'ruler2d'
+        if(e.target.id === 'matrix-mode') mode = 'matrix'
+        if(e.target.id === 'param-2d-mode') mode = 'param2d'
         if(e.target.id === 'vertex-2d-mode') mode = 'vertex2d'
         if(e.target.id === 'texel-mode') mode = 'texel'
+        if(e.target.id === 'animation-3d-mode') mode = 'animation3d'
+        if(e.target.id === 'animation-2d-mode') mode = 'animation2d'
+        if(e.target.id === 'surface-mode') mode = 'surface'
     
-        if(mode === 'ruler3d')
+        if(mode === 'param3d')
         {
-            removeClass(element.ruler3dDiv, 'none')
-            addClass(element.ruler3dMode, 'selected')
+            removeClass(element.param3dDiv, 'none')
+            addClass(element.param3dMode, 'selected')
         }
         if(mode === 'vertex3d')
         {
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex3dMode, 'selected')
         }
-        if(mode === 'space')
+        if(mode === 'matrix')
         {
-            removeClass(element.spaceDiv, 'none')
-            addClass(element.spaceMode, 'selected')
+            removeClass(element.matrixDiv, 'none')
+            addClass(element.matrixMode, 'selected')
         }
         if(mode === 'vertex2d')
         {
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex2dMode, 'selected')
         }
-        if(mode === 'ruler2d')
+        if(mode === 'param2d')
         {
-            removeClass(element.ruler2dDiv, 'none')
-            addClass(element.ruler2dMode, 'selected')
+            removeClass(element.param2dDiv, 'none')
+            addClass(element.param2dMode, 'selected')
         }
         if(mode === 'texel')
         {
             removeClass(element.texelDiv, 'none')
             addClass(element.texelMode, 'selected')
+        }
+        if(mode === 'animation3d')
+        {
+            removeClass(element.animation3dDiv, 'none')
+            addClass(element.animation3dMode, 'selected')
+        }
+        if(mode === 'animation2d')
+        {
+            removeClass(element.animation2dDiv, 'none')
+            addClass(element.animation2dMode, 'selected')
+        }
+        if(mode === 'surface')
+        {
+            removeClass(element.surfaceDiv, 'none')
+            addClass(element.surfaceMode, 'selected')
         }
     },
     touchSlider: (e) =>
@@ -353,16 +380,16 @@ const callback =
 // ロードとセーブのイベント
 element.saveForm.addEventListener('submit', callback.save)
 element.newButton.addEventListener('click', callback.deleteCaches)
-// 適用ボタンが押された時のイベント
-element.ruler3dForm.addEventListener('submit', callback.apply3d)
-element.ruler2dForm.addEventListener('submit', callback.apply2d)
 // モード変更ボタンが押された時のイベント
-element.ruler3dMode.addEventListener('click', callback.changeMode)
+element.param3dMode.addEventListener('click', callback.changeMode)
 element.vertex3dMode.addEventListener('click', callback.changeMode)
-element.spaceMode.addEventListener('click', callback.changeMode)
-element.ruler2dMode.addEventListener('click', callback.changeMode)
+element.matrixMode.addEventListener('click', callback.changeMode)
+element.param2dMode.addEventListener('click', callback.changeMode)
 element.vertex2dMode.addEventListener('click', callback.changeMode)
 element.texelMode.addEventListener('click', callback.changeMode)
+element.animation3dMode.addEventListener('click', callback.changeMode)
+element.animation2dMode.addEventListener('click', callback.changeMode)
+element.surfaceMode.addEventListener('click', callback.changeMode)
 // バーを押したのイベント
 element.depthBar.addEventListener('mousedown', callback.touchSlider)
 element.depth.addEventListener('mousedown', callback.touchSlider)
@@ -447,18 +474,6 @@ document.addEventListener('dblclick', callback.preventDefault, { passive: false 
 // メニュー禁止
 document.addEventListener('contextmenu', callback.returnFalse, { passive: false })
 
-// 全ての要素に対して行う
-/*
-for(let i = 0; i < element.all.length; i++)
-{
-    // 選択禁止
-    element.all[i].addEventListener('selectstart', callback.returnFalse, { passive: false })
-    // ダブルタップ禁止
-    element.all[i].addEventListener('dblclick', callback.preventDefault, { passive: false })
-    // メニュー禁止
-    element.all[i].addEventListener('contextmenu', callback.returnFalse, { passive: false })
-}
-*/
 // PWAの登録
 if ('serviceWorker' in navigator)
 {

@@ -1,8 +1,8 @@
 {
-    "short_name": "Modeler",
-    "name": "Primitive Modeler",
-    "id": "primitive-modeler",
-    "version": "0.0.2",
+    "short_name": "Space",
+    "name": "Space",
+    "id": "aa-space",
+    "version": "0.0.3",
     "description": "The Primitive 3D Modeler.",
     "theme_color": "#AAAAAA",
     "background_color": "#666666",

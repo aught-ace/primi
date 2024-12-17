@@ -1,4 +1,4 @@
-const cacheName = 'Primitive Modeler 0.0.0 d'
+const cacheName = 'Space 0.0.3'
 const file =
 [
 	'index.html',

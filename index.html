@@ -5,7 +5,7 @@
         <meta
             name="viewport"
             content="width=device-width,user-scalable=no">
-        <title>Primitive Modeler</title>
+        <title>Space</title>
 	    <link href="./icon.png" rel="icon">
 	    <link href="./style.css" rel="stylesheet">
         <link href="./manifest.json" rel="manifest">
@@ -21,22 +21,29 @@
                 </form>
             </div>
             <div id="load-div">
-                <input id="export" value="Exp" type="button" disabled>
-                <input id="import" value="Imp" type="button" disabled>
-                <input id="load" value="Load" type="button">
-                <input id="new" value="New" type="button">
+                <input
+                    id="export" value="Export" type="button" disabled><input
+                    id="import" value="Import" type="button" disabled><input
+                    id="load" value="Load" type="button"><input
+                    id="new" value="New" type="button">
             </div>
             <div id="mode-3d">
                 <span class="label">3D</span><span
-                    id="vertex-3d-mode" class="radio-button selected">Vertex</span><span
-                    id="space-mode" class="radio-button">Space</span><span
-                    id="ruler-3d-mode" class="radio-button">Param</span>
+                    id="vertex-3d-mode" class="radio-button selected">Vert</span><span
+                    id="surface-mode" class="radio-button">Surf</span><span
+                    id="matrix-mode" class="radio-button">Mat</span><span
+                    id="animation-3d-mode" class="radio-button">Anim</span>
             </div>
             <div id="mode-2d">
                 <span class="label">2D</span><span
-                    id="vertex-2d-mode" class="radio-button">Vertex</span><span
-                    id="texel-mode" class="radio-button">Texel</span><span
-                    id="ruler-2d-mode" class="radio-button">Param</span>
+                    id="vertex-2d-mode" class="radio-button">Vert</span><span
+                    id="texel-mode" class="radio-button">Tex</span><span
+                    id="animation-2d-mode" class="radio-button">Anim</span>
+            </div>
+            <div id="mode-param">
+                <span class="label">Set</span><span
+                    id="param-3d-mode" class="radio-button">3D</span><span
+                    id="param-2d-mode" class="radio-button">2D</span>
             </div>
 
             <canvas id="canvas"></canvas>
@@ -55,8 +62,8 @@
                 <div id="rotate" style="left:25%;top:25%;">Rotate</div>
             </div>
 
-            <div id="ruler-3d-div" class="none">
-                <form id="ruler-3d-form" action="">
+            <div id="param-3d-div" class="none">
+                <form id="param-3d-form" action="">
                     <dl>
                         <dt>Horizontal</dt>
                         <dd>
@@ -81,8 +88,8 @@
                 </form>
             </div>
             
-            <div id="ruler-2d-div" class="none">
-                <form id="ruler-2d-form" action="">
+            <div id="param-2d-div" class="none">
+                <form id="param-2d-form" action="">
                     <dl>
                         <dt>Width</dt>
                         <dd><input id="texture-width" value="16" min="1" max="256" type="number"></dd>
@@ -100,11 +107,17 @@
                 <div id="vertice-list"></div>
                 <div id="new-vertex" class="new-item button">New Vertex</div>
             </div>
-            <div id="space-div" class="none">
-                <div id="space-list"></div>
-                <div id="new-space" class="new-item button">New Space</div>
+            <div id="matrix-div" class="none">
+                <div id="matrix-list"></div>
+                <div id="new-matrix" class="new-item button">New Matrix</div>
+            </div>
+            <div id="surface-div" class="none">
             </div>
             <div id="texel-div" class="none">
+            </div>
+            <div id="animation-3d-div" class="none">
+            </div>
+            <div id="animation-2d-div" class="none">
             </div>
         </div>
 

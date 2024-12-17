@@ -1,10 +1,22 @@
 const Renderer = class
 {
+    #gl = null
+    #canvas = null
+    #canvasProgram = null
+    #vbo = null
+    #ibo = null
+    #frameTexture = null
+    #framebuffer = null
+    #depthRenderBuffer = null
+    #canvasSamplerLocation = null
+    #canvasPositionLocation = null
+    #canvasCoordinateLocation = null
+
     constructor(canvas)
     {
-        this._canvas = canvas
+        this.#canvas = canvas
         const gl = canvas.getContext("webgl2")
-        this._gl = gl
+        this.#gl = gl
 
         if (gl == null)
         {
@@ -45,17 +57,13 @@ const Renderer = class
         const canvasVertexShader = gl.createShader(gl.VERTEX_SHADER)
         gl.shaderSource(canvasVertexShader, canvasVertexShaderString)
         gl.compileShader(canvasVertexShader)
-        if(gl.getShaderParameter(canvasVertexShader, gl.COMPILE_STATUS))
-            this._canvasVertexShader = canvasVertexShader
-        else
+        if(!gl.getShaderParameter(canvasVertexShader, gl.COMPILE_STATUS))
             console.error(gl.getShaderInfoLog(canvasVertexShader))
         
         const canvasFragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
         gl.shaderSource(canvasFragmentShader, canvasFragmentShaderString)
         gl.compileShader(canvasFragmentShader)
-        if(gl.getShaderParameter(canvasFragmentShader, gl.COMPILE_STATUS))
-            this._canvasFragmentShader = canvasFragmentShader
-        else
+        if(!gl.getShaderParameter(canvasFragmentShader, gl.COMPILE_STATUS))
             console.error(gl.getShaderInfoLog(canvasFragmentShader))
         
         const canvasProgram = gl.createProgram()
@@ -65,7 +73,7 @@ const Renderer = class
         if(gl.getProgramParameter(canvasProgram, gl.LINK_STATUS))
         {
             gl.useProgram(canvasProgram)
-            this._canvasProgram = canvasProgram
+            this.#canvasProgram = canvasProgram
         }
         else
             console.error(gl.getProgramInfoLog(canvasProgram))
@@ -102,7 +110,7 @@ const Renderer = class
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertex), gl.STATIC_DRAW)
         gl.bindBuffer(gl.ARRAY_BUFFER, null)
-        this._vbo = vbo
+        this.#vbo = vbo
 
         this.index =
         [
@@ -114,11 +122,11 @@ const Renderer = class
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(this.index), gl.STATIC_DRAW)
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-        this._ibo = ibo
+        this.#ibo = ibo
 
-        this._canvasSamplerLocation = gl.getUniformLocation(this._canvasProgram, 'sampler')
-        this._canvasPositionLocation = gl.getAttribLocation(this._canvasProgram, 'position')
-        this._canvasCoordinateLocation = gl.getAttribLocation(this._canvasProgram, 'coordinate')
+        this.#canvasSamplerLocation = gl.getUniformLocation(this.#canvasProgram, 'sampler')
+        this.#canvasPositionLocation = gl.getAttribLocation(this.#canvasProgram, 'position')
+        this.#canvasCoordinateLocation = gl.getAttribLocation(this.#canvasProgram, 'coordinate')
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0)
 		gl.clearDepth(1.0)
@@ -137,28 +145,28 @@ const Renderer = class
 
     render()
     {
-        const gl = this._gl
+        const gl = this.#gl
 
-        if(this._frameTexture != null)
+        if(this.#frameTexture != null)
         {
             gl.activeTexture(gl.TEXTURE0 + 0)
-            gl.bindTexture(gl.TEXTURE_2D, this._frameTexture)
-            gl.uniform1i(this.canvasSamplerLocation, 0)
+            gl.bindTexture(gl.TEXTURE_2D, this.#frameTexture)
+            gl.uniform1i(this.#canvasSamplerLocation, 0)
         }
         else return
 
-        if(gl.getProgramParameter(this._canvasProgram, gl.LINK_STATUS))
-            gl.useProgram(this._canvasProgram)
+        if(gl.getProgramParameter(this.#canvasProgram, gl.LINK_STATUS))
+            gl.useProgram(this.#canvasProgram)
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo)
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vbo)
         
-        gl.enableVertexAttribArray(this._canvasPositionLocation)
-        gl.vertexAttribPointer(this._canvasPositionLocation, 3, gl.FLOAT, false, (3 + 2) * 4, 0)
+        gl.enableVertexAttribArray(this.#canvasPositionLocation)
+        gl.vertexAttribPointer(this.#canvasPositionLocation, 3, gl.FLOAT, false, (3 + 2) * 4, 0)
 
-        gl.enableVertexAttribArray(this._canvasCoordinateLocation)
-        gl.vertexAttribPointer(this._canvasCoordinateLocation, 2, gl.FLOAT, false, (3 + 2) * 4, 3 * 4)
+        gl.enableVertexAttribArray(this.#canvasCoordinateLocation)
+        gl.vertexAttribPointer(this.#canvasCoordinateLocation, 2, gl.FLOAT, false, (3 + 2) * 4, 3 * 4)
         
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo)
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#ibo)
 
         gl.drawElements(gl.TRIANGLES, this.index.length, gl.UNSIGNED_SHORT, 0)
 
@@ -167,7 +175,7 @@ const Renderer = class
 
     clear(r = 0, g = 0, b = 0, a = 0)
     {
-        const gl = this._gl
+        const gl = this.#gl
         gl.clearColor(r, g, b, a)
 		gl.clearDepth(1.0)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -175,8 +183,8 @@ const Renderer = class
 
     clearFrame(r = 0, g = 0, b = 0, a = 0)
     {
-        const gl = this._gl
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer)
+        const gl = this.#gl
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.#framebuffer)
         gl.clearColor(r, g, b, a)
 		gl.clearDepth(1.0)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -185,32 +193,32 @@ const Renderer = class
 
     resize(width = 256, height = 256)
     {
-        const gl = this._gl
-        const canvas = this._canvas
+        const gl = this.#gl
+        const canvas = this.#canvas
         
         canvas.width = width
         canvas.height = height
         
         gl.viewport(0, 0, width, height)
         
-        this._depthRenderBuffer = gl.createRenderbuffer()
-        gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderBuffer)
+        this.#depthRenderBuffer = gl.createRenderbuffer()
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.#depthRenderBuffer)
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height)
         gl.bindRenderbuffer(gl.RENDERBUFFER, null)
         
-        this._frameTexture = gl.createTexture()
-        gl.bindTexture(gl.TEXTURE_2D, this._frameTexture)
+        this.#frameTexture = gl.createTexture()
+        gl.bindTexture(gl.TEXTURE_2D, this.#frameTexture)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
         
-        this._framebuffer = gl.createFramebuffer()
+        this.#framebuffer = gl.createFramebuffer()
         
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#framebuffer)
         
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderBuffer)
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.#depthRenderBuffer)
         
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._frameTexture, 0)
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.#frameTexture, 0)
 
         gl.bindTexture(gl.TEXTURE_2D, null)
         gl.bindRenderbuffer(gl.RENDERBUFFER, null)

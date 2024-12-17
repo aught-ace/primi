@@ -2,20 +2,35 @@ import { Matrix } from "./matrix.js";
 
 const Model = class
 {
+    #gl = null
+    #renderer = null
+    #position = null
+    #index = null
+    #vbo = null
+    #ibo = null
+    #texture = null
+    #shaderType = 'white'
+    #renderProgram = null
+    #renderMatrixLocation = null
+    #renderRotateMatrixLocation = null
+    #renderPositionLocation = null
+    #renderNormalLocation = null
+    #renderSamplerLocation = null
+    #matrix = null
+
     constructor(renderer = null)
     {
         if(renderer === null) return
-        this._renderer = renderer
+        this.#renderer = renderer
         const gl = renderer._gl
-        this._gl = gl
-        this._texture = null
+        this.#gl = gl
+        this.#texture = null
 
-        this.matrix = new Matrix()
-        this.rotateMatrix = new Matrix()
+        this.#matrix = new Matrix()
         
-        this._texture = gl.createTexture()
+        this.#texture = gl.createTexture()
         gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, this._texture)
+        gl.bindTexture(gl.TEXTURE_2D, this.#texture)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -24,8 +39,8 @@ const Model = class
     }
     
     setShaderType(type) {
-        this._shaderType = type
-        const gl = this._gl
+        this.#shaderType = type
+        const gl = this.#gl
         
         let renderVertexShaderString, renderFragmentShaderString
         
@@ -175,17 +190,13 @@ const Model = class
         const renderVertexShader = gl.createShader(gl.VERTEX_SHADER)
         gl.shaderSource(renderVertexShader, renderVertexShaderString)
         gl.compileShader(renderVertexShader)
-        if(gl.getShaderParameter(renderVertexShader, gl.COMPILE_STATUS))
-            this._renderVertexShader = renderVertexShader
-        else
+        if(!gl.getShaderParameter(renderVertexShader, gl.COMPILE_STATUS))
             console.error(gl.getShaderInfoLog(renderVertexShader))
         
         const renderFragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
         gl.shaderSource(renderFragmentShader, renderFragmentShaderString)
         gl.compileShader(renderFragmentShader)
-        if(gl.getShaderParameter(renderFragmentShader, gl.COMPILE_STATUS))
-            this._renderFragmentShader = renderFragmentShader
-        else
+        if(!gl.getShaderParameter(renderFragmentShader, gl.COMPILE_STATUS))
             console.error(gl.getShaderInfoLog(renderFragmentShader))
         
         const renderProgram = gl.createProgram()
@@ -195,107 +206,94 @@ const Model = class
         if(gl.getProgramParameter(renderProgram, gl.LINK_STATUS))
         {
             gl.useProgram(renderProgram)
-            this._renderProgram = renderProgram
+            this.#renderProgram = renderProgram
         }
         else
             console.error(gl.getProgramInfoLog(renderProgram))
         
-        this._renderMatrixLocation = gl.getUniformLocation(this._renderProgram, 'matrix')
-        this._renderRotateMatrixLocation = gl.getUniformLocation(this._renderProgram, 'rotateMatrix')
-        this._renderPositionLocation = gl.getAttribLocation(this._renderProgram, 'position')
-        this._renderNormalLocation = gl.getAttribLocation(this._renderProgram, 'normal')
+        this.#renderMatrixLocation = gl.getUniformLocation(renderProgram, 'matrix')
+        this.#renderRotateMatrixLocation = gl.getUniformLocation(renderProgram, 'rotateMatrix')
+        this.#renderPositionLocation = gl.getAttribLocation(renderProgram, 'position')
+        this.#renderNormalLocation = gl.getAttribLocation(renderProgram, 'normal')
     }
 
     draw()
     {
-        const renderer = this._renderer
-        const gl = this._gl
+        const renderer = this.#renderer
+        const gl = this.#gl
 
-        if(this._texture != null)
+        if(this.#texture != null)
         {
             gl.activeTexture(gl.TEXTURE0 + 0)
-            gl.bindTexture(gl.TEXTURE_2D, this._texture)
-            gl.uniform1i(this._renderSamplerLocation, 0)
+            gl.bindTexture(gl.TEXTURE_2D, this.#texture)
+            gl.uniform1i(this.#renderSamplerLocation, 0)
         }
         else return
 
-        if(gl.getProgramParameter(this._renderProgram, gl.LINK_STATUS))
-            gl.useProgram(this._renderProgram)
+        if(gl.getProgramParameter(this.#renderProgram, gl.LINK_STATUS))
+            gl.useProgram(this.#renderProgram)
 
-		gl.uniformMatrix4fv(this._renderMatrixLocation, false, this.matrix)
+		gl.uniformMatrix4fv(this.#renderMatrixLocation, false, this.#matrix.matrix)
         
-        if(this._shaderType !== 'white')
-		gl.uniformMatrix4fv(this._renderRotateMatrixLocation, false, this.rotateMatrix)
+        if(this.#shaderType !== 'white')
+		gl.uniformMatrix4fv(this.#renderRotateMatrixLocation, false, this.#matrix.rotateMatrix)
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo)
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vbo)
         
-        gl.enableVertexAttribArray(this._renderPositionLocation)
-        gl.vertexAttribPointer(this._renderPositionLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 0)
+        gl.enableVertexAttribArray(this.#renderPositionLocation)
+        gl.vertexAttribPointer(this.#renderPositionLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 0)
         
-        if(this._shaderType !== 'white'){
-            gl.enableVertexAttribArray(this._renderNormalLocation)
-            gl.vertexAttribPointer(this._renderNormalLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 3 * 4)
+        if(this.#shaderType !== 'white'){
+            gl.enableVertexAttribArray(this.#renderNormalLocation)
+            gl.vertexAttribPointer(this.#renderNormalLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 3 * 4)
         }
         
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ibo)
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#ibo)
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, renderer._framebuffer)
         
-        gl.drawElements(gl.TRIANGLES, this.index.length, gl.UNSIGNED_SHORT, 0)
-        //gl.drawElements(gl.LINES, this.index.length, gl.UNSIGNED_SHORT, 0)
+        gl.drawElements(gl.TRIANGLES, this.#index.length, gl.UNSIGNED_SHORT, 0)
+        //gl.drawElements(gl.LINES, this.#index.length, gl.UNSIGNED_SHORT, 0)
         
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     }
 
-    setAttributes(
-        position =
-            [
-                -1.0,    0.0,    0.0,
-                 1.0,    0.0,    0.0,
-                 0.0,   -1.0,    0.0,
-                 0.0,    1.0,    0.0,
-                 0.0,    0.0,   -1.0,
-                 0.0,    0.0,    1.0,
-            ],
-        normal =
-            [
-                -1.0,    0.0,    0.0,
-                 1.0,    0.0,    0.0,
-                 0.0,   -1.0,    0.0,
-                 0.0,    1.0,    0.0,
-                 0.0,    0.0,   -1.0,
-                 0.0,    0.0,    1.0,
-            ]
+    set position(
+        p =
+        [
+            -1.0,    0.0,    0.0,
+            1.0,    0.0,    0.0,
+            0.0,   -1.0,    0.0,
+            0.0,    1.0,    0.0,
+            0.0,    0.0,   -1.0,
+            0.0,    0.0,    1.0,
+        ]
     )
     {
-        const gl = this._gl
+        const gl = this.#gl
 
-        this.position = position
-        this.normal = normal
+        this.#position = p
         
         this.vertex = []
-        for(let i = 0; i < position.length / 3; i++)
+        for(let i = 0; i < this.#position.length / 3; i++)
         {
-            this.vertex.push(position[i * 3 + 0])
-            this.vertex.push(position[i * 3 + 1])
-            this.vertex.push(position[i * 3 + 2])
-            this.vertex.push(normal[i * 3 + 0])
-            this.vertex.push(normal[i * 3 + 1])
-            this.vertex.push(normal[i * 3 + 2]) 
+            this.vertex.push(this.#position[i * 3 + 0])
+            this.vertex.push(this.#position[i * 3 + 1])
+            this.vertex.push(this.#position[i * 3 + 2])
         }
 
         const vbo = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertex), gl.DYNAMIC_DRAW)
         gl.bindBuffer(gl.ARRAY_BUFFER, null)
-        this._vbo = vbo
+        this.#vbo = vbo
     }
 
     //  25
     // 0*1
     // 43
-    setIndex(
-        index =
+    set index(
+        i =
         [
             4, 3, 0,
             4, 0, 2,
@@ -309,48 +307,37 @@ const Model = class
         ]
     )
     {
-        const gl = this._gl
-        this.index = index
+        const gl = this.#gl
+        this.#index = i
         const ibo = gl.createBuffer()
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(index), gl.DYNAMIC_DRAW)
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(i), gl.DYNAMIC_DRAW)
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-        this._ibo = ibo
+        this.#ibo = ibo
     }
 
-    setTexture(width, height, data)
+    set texture(t)
     {
-        const gl = this._gl
+        const gl = this.#gl
         
-        this.textureData = {
-            width: width,
-            height: height,
-            data: new Uint8Array(data),
-        }
-        
-        gl.bindTexture(gl.TEXTURE_2D, this._texture)
+        gl.bindTexture(gl.TEXTURE_2D, this.#texture)
         gl.texImage2D(
             gl.TEXTURE_2D,
             0,
             gl.RGBA,
-            this.textureData.width,
-            this.textureData.height,
+            t.width,
+            t.height,
             0,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            this.textureData.data
+            new Uint8Array(t.data)
         )
         gl.bindTexture(gl.TEXTURE_2D, null)
     }
 
-    setMatrix(matrix)
+    set matrix(m)
     {
-        this.matrix = matrix
-    }
-
-    setRotateMatrix(rotateMatrix)
-    {
-        this.rotateMatrix = rotateMatrix
+        this.#matrix = m
     }
 }
 
