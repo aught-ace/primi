@@ -379,7 +379,7 @@ const callback =
 
 // ロードとセーブのイベント
 element.saveForm.addEventListener('submit', callback.save)
-element.newButton.addEventListener('click', callback.deleteCaches)
+//element.newButton.addEventListener('click', callback.deleteCaches)
 // モード変更ボタンが押された時のイベント
 element.param3dMode.addEventListener('pointerdown', callback.changeMode)
 element.vertex3dMode.addEventListener('pointerdown', callback.changeMode)
