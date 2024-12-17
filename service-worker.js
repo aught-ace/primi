@@ -1,4 +1,4 @@
-const cacheName = 'Space 0.0.3'
+const cacheName = 'Space 0.0.4'
 const file =
 [
 	'index.html',
