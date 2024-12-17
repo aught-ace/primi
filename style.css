@@ -84,7 +84,7 @@
     }
     #scroll-pad
     {
-        grid-column: 9 / 13;
+        grid-column: 10 / 14;
         grid-row: 23 / 27;
     }
     #depth-bar
@@ -94,13 +94,13 @@
     }
     #time-bar
     {
-        grid-column: 9 / 11;
-        grid-row: 28 / 32;
+        grid-column: 10 / 12;
+        grid-row: 27 / 31;
     }
     #rotate-pad
     {
         grid-column: 12 / 16;
-        grid-row: 28 / 32;
+        grid-row: 27 / 31;
     }
     #ruler-3d-div,
     #ruler-2d-div,
@@ -153,22 +153,22 @@
     }
     #scroll-pad
     {
-        grid-column: 25 / 29;
-        grid-row: 7 / 11;
+        grid-column: 26 / 30;
+        grid-row: 8 / 12;
     }
     #depth-bar
     {
         grid-column: 30 / 32;
-        grid-row: 7 / 11;
+        grid-row: 8 / 12;
+    }
+    #time-bar
+    {
+        grid-column: 26 / 28;
+        grid-row: 12 / 16;
     }
     #rotate-pad
     {
         grid-column: 28 / 32;
-        grid-row: 12 / 16;
-    }
-    #time-bar
-    {
-        grid-column: 25 / 27;
         grid-row: 12 / 16;
     }
     #ruler-3d-div,
@@ -449,12 +449,16 @@ a:active
 /* タイトル */
 h1
 {
+    padding: 1em;
+    font-size: 4svmin;
     line-height: 2em;
 }
 
 /* 段落 */
 p
 {
+    padding: 1em;
+    font-size: 4svmin;
     line-height: 2em;
 }
 

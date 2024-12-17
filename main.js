@@ -239,7 +239,8 @@ const callback =
         if(
             e.type !== 'touchend' &&
             e.type !== 'touchcancel' &&
-            e.type !== 'pointerup' &&
+            e.type !== 'mouseup' &&
+            e.type !== 'mousecancel' &&
             !(e.buttons & 1)
         ) return
 
@@ -266,7 +267,7 @@ const callback =
             e.type !== 'touchmove' &&
             !(e.buttons & 1)
         ) return
-        
+
         let innerElem, innerRect, outerRect
     
         if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
@@ -309,7 +310,8 @@ const callback =
         if(
             e.type !== 'touchend' &&
             e.type !== 'touchcancel' &&
-            e.type !== 'pointerup' &&
+            e.type !== 'mouseup' &&
+            e.type !== 'mousecancel' &&
             !(e.buttons & 1)
         ) return
     
@@ -362,39 +364,35 @@ element.ruler2dMode.addEventListener('click', callback.changeMode)
 element.vertex2dMode.addEventListener('click', callback.changeMode)
 element.texelMode.addEventListener('click', callback.changeMode)
 // バーを押したのイベント
-element.depthBar.addEventListener('pointerdown', callback.touchSlider)
-element.depth.addEventListener('pointerdown', callback.touchSlider)
-element.timeBar.addEventListener('pointerdown', callback.touchSlider)
-element.time.addEventListener('pointerdown', callback.touchSlider)
-element.depthBar.addEventListener('pointermove', callback.touchSlider)
-element.depth.addEventListener('pointermove', callback.touchSlider)
-element.timeBar.addEventListener('pointermove', callback.touchSlider)
-element.time.addEventListener('pointermove', callback.touchSlider)
-element.depthBar.addEventListener('touchstart', callback.touchSlider, { passive: false })
-element.depth.addEventListener('touchstart', callback.touchSlider, { passive: false })
-element.timeBar.addEventListener('touchstart', callback.touchSlider, { passive: false })
-element.time.addEventListener('touchstart', callback.touchSlider, { passive: false })
-element.depthBar.addEventListener('touchmove', callback.touchSlider, { passive: false })
-element.depth.addEventListener('touchmove', callback.touchSlider, { passive: false })
-element.timeBar.addEventListener('touchmove', callback.touchSlider, { passive: false })
-element.time.addEventListener('touchmove', callback.touchSlider, { passive: false })
+element.depthBar.addEventListener('mousedown', callback.touchSlider)
+element.depth.addEventListener('mousedown', callback.touchSlider)
+element.timeBar.addEventListener('mousedown', callback.touchSlider)
+element.time.addEventListener('mousedown', callback.touchSlider)
+element.depthBar.addEventListener('mousemove', callback.touchSlider)
+element.depth.addEventListener('mousemove', callback.touchSlider)
+element.timeBar.addEventListener('mousemove', callback.touchSlider)
+element.time.addEventListener('mousemove', callback.touchSlider)
+element.depthBar.addEventListener('touchstart', callback.touchSlider, { passive: true })
+element.depth.addEventListener('touchstart', callback.touchSlider, { passive: true })
+element.timeBar.addEventListener('touchstart', callback.touchSlider, { passive: true })
+element.time.addEventListener('touchstart', callback.touchSlider, { passive: true })
+element.depthBar.addEventListener('touchmove', callback.touchSlider, { passive: true })
+element.depth.addEventListener('touchmove', callback.touchSlider, { passive: true })
+element.timeBar.addEventListener('touchmove', callback.touchSlider, { passive: true })
+element.time.addEventListener('touchmove', callback.touchSlider, { passive: true })
 // バーを離したのイベント
-element.depthBar.addEventListener('pointerup', callback.releaseSlider)
-element.depth.addEventListener('pointerup', callback.releaseSlider)
-element.timeBar.addEventListener('pointerup', callback.releaseSlider)
-element.time.addEventListener('pointerup', callback.releaseSlider)
-element.depthBar.addEventListener('pointerleave', callback.releaseSlider)
-element.depth.addEventListener('pointerleave', callback.releaseSlider)
-element.timeBar.addEventListener('pointerleave', callback.releaseSlider)
-element.time.addEventListener('pointerleave', callback.releaseSlider)
-element.depthBar.addEventListener('pointerout', callback.releaseSlider)
-element.depth.addEventListener('pointerout', callback.releaseSlider)
-element.timeBar.addEventListener('pointerout', callback.releaseSlider)
-element.time.addEventListener('pointerout', callback.releaseSlider)
-element.depthBar.addEventListener('pointercancel', callback.releaseSlider)
-element.depth.addEventListener('pointercancel', callback.releaseSlider)
-element.timeBar.addEventListener('pointercancel', callback.releaseSlider)
-element.time.addEventListener('pointercancel', callback.releaseSlider)
+element.depthBar.addEventListener('mouseup', callback.releaseSlider)
+element.depth.addEventListener('mouseup', callback.releaseSlider)
+element.timeBar.addEventListener('mouseup', callback.releaseSlider)
+element.time.addEventListener('mouseup', callback.releaseSlider)
+element.depthBar.addEventListener('mouseleave', callback.releaseSlider)
+element.depth.addEventListener('mouseleave', callback.releaseSlider)
+element.timeBar.addEventListener('mouseleave', callback.releaseSlider)
+element.time.addEventListener('mouseleave', callback.releaseSlider)
+element.depthBar.addEventListener('mousecancel', callback.releaseSlider)
+element.depth.addEventListener('mousecancel', callback.releaseSlider)
+element.timeBar.addEventListener('mousecancel', callback.releaseSlider)
+element.time.addEventListener('mousecancel', callback.releaseSlider)
 element.depthBar.addEventListener('touchend', callback.releaseSlider)
 element.depth.addEventListener('touchend', callback.releaseSlider)
 element.timeBar.addEventListener('touchend', callback.releaseSlider)
@@ -404,39 +402,35 @@ element.depth.addEventListener('touchcancel', callback.releaseSlider)
 element.timeBar.addEventListener('touchcancel', callback.releaseSlider)
 element.time.addEventListener('touchcancel', callback.releaseSlider)
 // パッドを押したのイベント
-element.scrollPad.addEventListener('pointerdown', callback.touchPad)
-element.scroll.addEventListener('pointerdown', callback.touchPad)
-element.rotatePad.addEventListener('pointerdown', callback.touchPad)
-element.rotate.addEventListener('pointerdown', callback.touchPad)
-element.scrollPad.addEventListener('pointermove', callback.touchPad)
-element.scroll.addEventListener('pointermove', callback.touchPad)
-element.rotatePad.addEventListener('pointermove', callback.touchPad)
-element.rotate.addEventListener('pointermove', callback.touchPad)
-element.scrollPad.addEventListener('touchstart', callback.touchPad, { passive: false })
-element.scroll.addEventListener('touchstart', callback.touchPad, { passive: false })
-element.rotatePad.addEventListener('touchstart', callback.touchPad, { passive: false })
-element.rotate.addEventListener('touchstart', callback.touchPad, { passive: false })
-element.scrollPad.addEventListener('touchmove', callback.touchPad, { passive: false })
-element.scroll.addEventListener('touchmove', callback.touchPad, { passive: false })
-element.rotatePad.addEventListener('touchmove', callback.touchPad, { passive: false })
-element.rotate.addEventListener('touchmove', callback.touchPad, { passive: false })
+element.scrollPad.addEventListener('mousedown', callback.touchPad)
+element.scroll.addEventListener('mousedown', callback.touchPad)
+element.rotatePad.addEventListener('mousedown', callback.touchPad)
+element.rotate.addEventListener('mousedown', callback.touchPad)
+element.scrollPad.addEventListener('mousemove', callback.touchPad)
+element.scroll.addEventListener('mousemove', callback.touchPad)
+element.rotatePad.addEventListener('mousemove', callback.touchPad)
+element.rotate.addEventListener('mousemove', callback.touchPad)
+element.scrollPad.addEventListener('touchstart', callback.touchPad, { passive: true })
+element.scroll.addEventListener('touchstart', callback.touchPad, { passive: true })
+element.rotatePad.addEventListener('touchstart', callback.touchPad, { passive: true })
+element.rotate.addEventListener('touchstart', callback.touchPad, { passive: true })
+element.scrollPad.addEventListener('touchmove', callback.touchPad, { passive: true })
+element.scroll.addEventListener('touchmove', callback.touchPad, { passive: true })
+element.rotatePad.addEventListener('touchmove', callback.touchPad, { passive: true })
+element.rotate.addEventListener('touchmove', callback.touchPad, { passive: true })
 // パッドを離したのイベント
-element.scrollPad.addEventListener('pointerup', callback.releasePad)
-element.scroll.addEventListener('pointerup', callback.releasePad)
-element.rotatePad.addEventListener('pointerup', callback.releasePad)
-element.rotate.addEventListener('pointerup', callback.releasePad)
-element.scrollPad.addEventListener('pointerleave', callback.releasePad)
-element.scroll.addEventListener('pointerleave', callback.releasePad)
-element.rotatePad.addEventListener('pointerleave', callback.releasePad)
-element.rotate.addEventListener('pointerleave', callback.releasePad)
-element.scrollPad.addEventListener('pointerout', callback.releasePad)
-element.scroll.addEventListener('pointerout', callback.releasePad)
-element.rotatePad.addEventListener('pointerout', callback.releasePad)
-element.rotate.addEventListener('pointerout', callback.releasePad)
-element.scrollPad.addEventListener('pointercancel', callback.releasePad)
-element.scroll.addEventListener('pointercancel', callback.releasePad)
-element.rotatePad.addEventListener('pointercancel', callback.releasePad)
-element.rotate.addEventListener('pointercancel', callback.releasePad)
+element.scrollPad.addEventListener('mouseup', callback.releasePad)
+element.scroll.addEventListener('mouseup', callback.releasePad)
+element.rotatePad.addEventListener('mouseup', callback.releasePad)
+element.rotate.addEventListener('mouseup', callback.releasePad)
+element.scrollPad.addEventListener('mouseleave', callback.releasePad)
+element.scroll.addEventListener('mouseleave', callback.releasePad)
+element.rotatePad.addEventListener('mouseleave', callback.releasePad)
+element.rotate.addEventListener('mouseleave', callback.releasePad)
+element.scrollPad.addEventListener('mousecancel', callback.releasePad)
+element.scroll.addEventListener('mousecancel', callback.releasePad)
+element.rotatePad.addEventListener('mousecancel', callback.releasePad)
+element.rotate.addEventListener('mousecancel', callback.releasePad)
 element.scrollPad.addEventListener('touchend', callback.releasePad)
 element.scroll.addEventListener('touchend', callback.releasePad)
 element.rotatePad.addEventListener('touchend', callback.releasePad)
@@ -445,6 +439,13 @@ element.scrollPad.addEventListener('touchcancel', callback.releasePad)
 element.scroll.addEventListener('touchcancel', callback.releasePad)
 element.rotatePad.addEventListener('touchcancel', callback.releasePad)
 element.rotate.addEventListener('touchcancel', callback.releasePad)
+
+// 選択禁止
+document.addEventListener('selectstart', callback.returnFalse, { passive: false })
+// ダブルタップ禁止
+document.addEventListener('dblclick', callback.preventDefault, { passive: false })
+// メニュー禁止
+document.addEventListener('contextmenu', callback.returnFalse, { passive: false })
 
 // 全ての要素に対して行う
 /*
