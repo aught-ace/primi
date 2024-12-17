@@ -177,7 +177,7 @@
     #space-div,
     #texel-div
     {
-        grid-column: 1 / 8;
+        grid-column: 1 / 9;
         grid-row: 5 / 17;
     }
 }
@@ -209,7 +209,7 @@
 /* モード */
 .label
 {
-    width: 3em;
+    width: 2em;
     height: 2em;
     line-height: 2em;
     text-align: center;
@@ -223,7 +223,7 @@
 #space-mode,
 #texel-mode
 {
-    width: calc((100% - 3em) / 3);
+    width: calc((100% - 2em) / 3);
 }
 
 /* ファイル関係のボタン */
