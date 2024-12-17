@@ -1,4 +1,4 @@
-const cacheName = 'Primi 0.0.0 a'
+const cacheName = 'Primi 0.0.0 b'
 const file =
 [
 	'index.html',
