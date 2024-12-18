@@ -43,7 +43,7 @@
                     id="pose-2d-mode" class="radio-button">Pose</span>
             </div>
 
-            <canvas id="canvas"></canvas>
+            <canvas id="canvas" width="800" height="800"></canvas>
 
             <div id="position-x">x: 0</div>
             <div id="position-y">y: 0</div>
@@ -85,7 +85,7 @@
                         </dd>
                         <dt>Appry</dt>
                         <dd>
-                            <div id="apply-3d" class="apply button">Apply</div>
+                            <input value="Apply" id="apply-3d" type="submit">
                         </dd>
                     </dl>
                 </form>
@@ -99,7 +99,7 @@
                         <dd><input id="texture-height" value="16" min="1" max="255" type="number"></dd>
                         <dt>Appry</dt>
                         <dd>
-                            <div id="apply-2d" class="apply button">Apply</div>
+                            <input value="Apply" id="apply-2d" type="submit">
                         </dd>
                     </dl>
                 </form>
@@ -113,6 +113,12 @@
             <div id="surface-div" class="none">
             </div>
             <div id="texel-div" class="none">
+                <dl>
+                    <dt>Color</dt>
+                    <dd>
+                        <input value="#000000" id="texel-color" type="color" />
+                    </dd>
+                </dl>
             </div>
             <div id="pose-3d-div" class="none">
             </div>
@@ -120,9 +126,7 @@
             </div>
         </div>
 
-        <script src="./drawer/matrix.js" type="module" defer></script>
-        <script src="./drawer/model.js" type="module" defer></script>
-        <script src="./drawer/renderer.js" type="module" defer></script>
+        <script src="./renderer.js" type="module" defer></script>
         <script src="./main.js" type="module" defer></script>
     </body>
 </html>

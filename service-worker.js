@@ -1,14 +1,12 @@
-const cacheName = 'Space 0.0.5'
+const cacheName = 'Space 0.0.6'
 const file =
 [
 	'index.html',
 	'style.css',
 	'main.js',
+	'renderer.js',
     'icon.png',
     'apple-touch-icon.png',
-	'drawer/model.js',
-	'drawer/matrix.js',
-	'drawer/renderer.js',
 	'offline-nocache.html',
 ]
 const cacheKey =

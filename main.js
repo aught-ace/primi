@@ -1,10 +1,12 @@
-// モジュールのインポート
-import { Matrix } from './drawer/matrix.js'
-import { Model } from './drawer/model.js'
-import { Renderer } from './drawer/renderer.js'
+// 描画モジュールのインポート
+import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // モード
-let mode = 'vertex3d'
+let mode = 
+{
+    name: 'vertex3d',
+    dimension: 3,
+}
 
 // 要素
 const element =
@@ -51,18 +53,24 @@ const element =
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
     rotate: document.querySelector('#rotate'),
-    grid: document.querySelector('#glid'),
+    grid: document.querySelector('#grid'),
     textureWidth: document.querySelector('#texture-width'),
     textureHeight: document.querySelector('#texture-height'),
     positionX: document.querySelector('#position-x'),
     positionY: document.querySelector('#position-y'),
     positionZ: document.querySelector('#position-z'),
-    positionT: document.querySelector('#position-t'),
+    time: document.querySelector('#position-t'),
     rotateX: document.querySelector('#rotate-x'),
     rotateY: document.querySelector('#rotate-y'),
     textureX: document.querySelector('#texture-x'),
     textureY: document.querySelector('#texture-y'),
-    all: document.querySelector('*'),
+    put: document.querySelector('#put'),
+    up: document.querySelector('#up'),
+    down: document.querySelector('#down'),
+    select: document.querySelector('#select'),
+    grab: document.querySelector('#grab'),
+    remove: document.querySelector('#remove'),
+    texelColor: document.querySelector('#texel-color'),
 }
 
 // 立体オブジェクト
@@ -82,8 +90,12 @@ const object =
                 }
             ).replaceAll(/[\/: ]/g, ''),
     grid: 4,
-    width: 16,
-    height: 16,
+    texture:
+    {
+        width: 16,
+        height: 16,
+        data: []
+    },
 }
 element.name.value = object.name
 
@@ -112,12 +124,14 @@ const control =
         texX: 0,
         texY: 0,
     },
+    texel:
+    {
+        put: false,
+        remove: false,
+        color: [0, 0, 0, 255],
+    }
 }
 
-// 描画
-const renderer = new Renderer(element.canvas)
-renderer.clearFrame(0.5, 0.5, 0.5, 1)
-renderer.clear(0.5, 0.5, 0.5, 1)
 
 // 現在のカーソル位置などの更新
 const updateCursor = (deltaTime) =>
@@ -131,14 +145,166 @@ const updateCursor = (deltaTime) =>
     control.current.rotY += control.delta.rotY * d
     control.current.texX += control.delta.texX * d
     control.current.texY += control.delta.texY * d
-    element.positionX.textContent = 'x: ' + Math.round(control.current.x)
-    element.positionY.textContent = 'y: ' + Math.round(control.current.y)
-    element.positionZ.textContent = 'z: ' + Math.round(control.current.z)
-    element.positionT.textContent = 't: ' + Math.round(control.current.t)
-    element.rotateX.textContent = 'rx: ' + Math.round(control.current.rotX)
-    element.rotateY.textContent = 'ry: ' + Math.round(control.current.rotY)
-    element.textureX.textContent = 'tx: ' + Math.round(control.current.texX)
-    element.textureY.textContent = 'ty: ' + Math.round(control.current.texY)
+    element.positionX.textContent = 'x: ' + Math.floor(control.current.x * object.grid)
+    element.positionY.textContent = 'y: ' + Math.floor(control.current.y * object.grid)
+    element.positionZ.textContent = 'z: ' + Math.floor(control.current.z * object.grid)
+    element.time.textContent = 't: ' + Math.floor(control.current.t)
+    element.rotateX.textContent = 'rx: ' + Math.floor(control.current.rotX)
+    element.rotateY.textContent = 'ry: ' + Math.floor(control.current.rotY)
+    element.textureX.textContent = 'tx: ' + Math.floor(control.current.texX * object.texture.width / 2)
+    element.textureY.textContent = 'ty: ' + Math.floor(control.current.texY * object.texture.height / 2)
+}
+
+// 描画フレームワーク
+const renderer = new Renderer(element.canvas)
+const textureShader = new Shader('texture', renderer)
+const centerModel = new Model(renderer)
+const textureModel = new Model(renderer)
+const textureMatrix = new Matrix()
+
+// テクスチャ初期化
+const initTexture = () =>
+{
+    for(let i = 0; i < object.texture.width * object.texture.height * 4; i++)
+        object.texture.data[i] = 255
+    textureModel.texture = 
+    {
+        width: object.texture.width,
+        height: object.texture.height,
+        data: object.texture.data,
+    }
+}
+
+// 初期化
+const init = () =>
+{
+    renderer.clearFrame(0.5, 0.5, 0.5, 1)
+    renderer.clear(0.5, 0.5, 0.5, 1)
+
+    // 中央の点の板
+    centerModel.shader = textureShader
+    centerModel.position = 
+    [
+        -1 / 20, -1 / 20, 0,
+         1 / 20, -1 / 20, 0,
+        -1 / 20,  1 / 20, 0,
+         1 / 20,  1 / 20, 0,
+    ]
+    centerModel.color = 
+    [
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+    ]
+    centerModel.coordinate = 
+    [
+        0, 0,
+        1, 0,
+        0, 1,
+        1, 1,
+    ]
+    centerModel.index = 
+    [
+        0, 1, 2,
+        3, 2, 1,
+    ]
+
+    // 十字を描く
+    const centertextureData = []
+    for(let y = 0; y < 16; y++)
+        for(let x = 0; x < 16; x++)
+        {
+            centertextureData[(y * 16 + x) * 4 + 0] = 255
+            centertextureData[(y * 16 + x) * 4 + 1] = 255
+            centertextureData[(y * 16 + x) * 4 + 2] = 255
+            centertextureData[(y * 16 + x) * 4 + 3] = 0
+            if(6 <= x && x <= 9 || 6 <= y && y <= 9)
+            {
+                centertextureData[(y * 16 + x) * 4 + 0] = 0
+                centertextureData[(y * 16 + x) * 4 + 1] = 0
+                centertextureData[(y * 16 + x) * 4 + 2] = 0
+                centertextureData[(y * 16 + x) * 4 + 3] = 255
+            }
+            if(
+                x !== 0 && x !== 15 && y !== 0 && y !== 15 &&
+                (x === 7 || x === 8 || y === 7 || y === 8)
+            )
+            {
+                centertextureData[(y * 16 + x) * 4 + 0] = 255
+                centertextureData[(y * 16 + x) * 4 + 1] = 255
+                centertextureData[(y * 16 + x) * 4 + 2] = 255
+                centertextureData[(y * 16 + x) * 4 + 3] = 255
+            }
+        }
+    centerModel.texture = 
+    {
+        id: 0,
+        width: 16,
+        height: 16,
+        data: centertextureData,
+    }
+
+    // テクスチャ表示用の板
+    textureModel.shader = textureShader
+    textureModel.position = 
+    [
+         0, 0, 0,
+         2, 0, 0,
+         0, 2, 0,
+         2, 2, 0,
+    ]
+    textureModel.color = 
+    [
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+    ]
+    textureModel.coordinate = 
+    [
+        0, 0,
+        1, 0,
+        0, 1,
+        1, 1,
+    ]
+    textureModel.index = 
+    [
+        0, 1, 2,
+        3, 2, 1,
+    ]
+    textureModel.matrix = textureMatrix
+    initTexture()
+}
+init()
+
+// テクセル描き
+const drawTexel = () =>
+{
+    let c
+    if(control.texel.put) c = control.texel.color
+    else if(control.texel.remove) c = [0, 0, 0, 0]
+    else return
+    const w = object.texture.width
+    const h = object.texture.height
+    const x = Math.floor(control.current.texX * w / 2)
+    const y = Math.floor(control.current.texY * h / 2)
+    if(
+        x < 0 || w <= x ||
+        y < 0 || h <= y
+    ) return
+
+    object.texture.data[(y * w + x) * 4 + 0] = c[0]
+    object.texture.data[(y * w + x) * 4 + 1] = c[1]
+    object.texture.data[(y * w + x) * 4 + 2] = c[2]
+    object.texture.data[(y * w + x) * 4 + 3] = c[3]
+    textureModel.texture = 
+    {
+        id: 1,
+        width: object.texture.width,
+        height: object.texture.height,
+        data: object.texture.data,
+    }
 }
 
 // アニメーションフレーム
@@ -151,7 +317,24 @@ const animationFrame = (timestamp) =>
     else deltaTime = timestamp - prevTimestamp
     prevTimestamp = timestamp
 
+    // カーソル更新
     updateCursor(deltaTime)
+
+    // 描画
+    renderer.clearFrame(0.5, 0.5, 0.5, 1)
+
+    if(mode.name === 'texel') drawTexel()
+
+    if(mode.dimension === 2)
+    {
+        // テクスチャ板
+        textureMatrix.initialize()
+        textureMatrix.translateX(-control.current.texX)
+        textureMatrix.translateY(-control.current.texY)
+        textureModel.drawTriangles()
+    }
+
+    centerModel.drawTriangles()
 }
 requestAnimationFrame(animationFrame)
 
@@ -196,10 +379,12 @@ const callback =
         // フォーム送信をキャンセル
         e.stopPropagation()
         e.preventDefault()
-    
+
         // 入力欄の値をオブジェクトにセット
-        object.width = element.textureWidth.value
-        object.height = element.textureHeight.value
+        object.texture.width = element.textureWidth.value
+        object.texture.height = element.textureHeight.value
+
+        initTexture()
     },
     changeMode: (e) =>
     {
@@ -222,61 +407,76 @@ const callback =
         removeClass(element.pose3dMode, 'selected')
         removeClass(element.pose2dMode, 'selected')
     
-        if(e.target.id === 'param-3d-mode') mode = 'param3d'
-        if(e.target.id === 'vertex-3d-mode') mode = 'vertex3d'
-        if(e.target.id === 'matrix-mode') mode = 'matrix'
-        if(e.target.id === 'param-2d-mode') mode = 'param2d'
-        if(e.target.id === 'vertex-2d-mode') mode = 'vertex2d'
-        if(e.target.id === 'texel-mode') mode = 'texel'
-        if(e.target.id === 'pose-3d-mode') mode = 'pose3d'
-        if(e.target.id === 'pose-2d-mode') mode = 'pose2d'
-        if(e.target.id === 'surface-mode') mode = 'surface'
+        if(e.target.id === 'param-3d-mode') mode.name = 'param3d'
+        if(e.target.id === 'vertex-3d-mode') mode.name = 'vertex3d'
+        if(e.target.id === 'matrix-mode') mode.name = 'matrix'
+        if(e.target.id === 'param-2d-mode') mode.name = 'param2d'
+        if(e.target.id === 'vertex-2d-mode') mode.name = 'vertex2d'
+        if(e.target.id === 'texel-mode') mode.name = 'texel'
+        if(e.target.id === 'pose-3d-mode') mode.name = 'pose3d'
+        if(e.target.id === 'pose-2d-mode') mode.name = 'pose2d'
+        if(e.target.id === 'surface-mode') mode.name = 'surface'
     
-        if(mode === 'param3d')
+        if(mode.name === 'param3d')
         {
             removeClass(element.param3dDiv, 'none')
             addClass(element.param3dMode, 'selected')
+            mode.dimension = 3
         }
-        if(mode === 'vertex3d')
+        if(mode.name === 'vertex3d')
         {
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex3dMode, 'selected')
+            mode.dimension = 3
         }
-        if(mode === 'matrix')
+        if(mode.name === 'matrix')
         {
             removeClass(element.matrixDiv, 'none')
             addClass(element.matrixMode, 'selected')
+            mode.dimension = 3
         }
-        if(mode === 'vertex2d')
-        {
-            removeClass(element.vertexDiv, 'none')
-            addClass(element.vertex2dMode, 'selected')
-        }
-        if(mode === 'param2d')
-        {
-            removeClass(element.param2dDiv, 'none')
-            addClass(element.param2dMode, 'selected')
-        }
-        if(mode === 'texel')
-        {
-            removeClass(element.texelDiv, 'none')
-            addClass(element.texelMode, 'selected')
-        }
-        if(mode === 'pose3d')
+        if(mode.name === 'pose3d')
         {
             removeClass(element.pose3dDiv, 'none')
             addClass(element.pose3dMode, 'selected')
+            mode.dimension = 3
         }
-        if(mode === 'pose2d')
-        {
-            removeClass(element.pose2dDiv, 'none')
-            addClass(element.pose2dMode, 'selected')
-        }
-        if(mode === 'surface')
+        if(mode.name === 'surface')
         {
             removeClass(element.surfaceDiv, 'none')
             addClass(element.surfaceMode, 'selected')
+            mode.dimension = 3
         }
+        if(mode.name === 'vertex2d')
+        {
+            removeClass(element.vertexDiv, 'none')
+            addClass(element.vertex2dMode, 'selected')
+            mode.dimension = 2
+        }
+        if(mode.name === 'param2d')
+        {
+            removeClass(element.param2dDiv, 'none')
+            addClass(element.param2dMode, 'selected')
+            mode.dimension = 2
+        }
+        if(mode.name === 'texel')
+        {
+            removeClass(element.texelDiv, 'none')
+            addClass(element.texelMode, 'selected')
+            mode.dimension = 2
+        }
+        if(mode.name === 'pose2d')
+        {
+            removeClass(element.pose2dDiv, 'none')
+            addClass(element.pose2dMode, 'selected')
+            mode.dimension = 2
+        }
+
+        // テクセル描きの終了
+        control.texel.remove = false
+        control.texel.put = false
+        removeClass(element.remove, 'selected')
+        removeClass(element.put, 'selected')
     },
     touchSlider: (e) =>
     {
@@ -316,11 +516,11 @@ const callback =
 
         if(innerElem.id === 'depth')
         {
-            control.delta.z = -ny * 4
+            control.delta.z = -ny / 2
         }
         if(innerElem.id === 'time')
         {
-            control.delta.t = -ny * 4
+            control.delta.t = -ny / 2
         }
     
         innerElem.style.top = (25 + ny * 25) + '%'
@@ -348,15 +548,15 @@ const callback =
             innerElem = element.time
         }
         else return
-
-        control.delta.x = 0
-        control.delta.y = 0
-        control.delta.z = 0
-        control.delta.t = 0
-        control.delta.rotX = 0
-        control.delta.rotY = 0
-        control.delta.texX = 0
-        control.delta.texY = 0
+        
+        if(innerElem.id === 'depth')
+        {
+            control.delta.z = 0
+        }
+        if(innerElem.id === 'time')
+        {
+            control.delta.t = 0
+        }
     
         innerElem.style.top = '25%'
     },
@@ -402,15 +602,25 @@ const callback =
             ny /= s
         }
 
-        if(innerElem.id === 'scroll')
+        if(mode.dimension === 3 && innerElem.id === 'scroll')
         {
-            control.delta.x = nx * 4
-            control.delta.y = ny * 4
+            control.delta.x = nx / 2
+            control.delta.y = -ny / 2
         }
-        if(innerElem.id === 'rotate')
+        if(mode.dimension === 3 && innerElem.id === 'rotate')
         {
-            control.delta.rotX = ny * 4
-            control.delta.rotY = nx * 4
+            control.delta.rotX = ny / 2
+            control.delta.rotY = nx / 2
+        }
+        if(mode.dimension === 2 && innerElem.id === 'scroll')
+        {
+            control.delta.texX = nx / 2
+            control.delta.texY = -ny / 2
+        }
+        if(mode.dimension === 2 && innerElem.id === 'rotate')
+        {
+            control.delta.texX = nx * 2
+            control.delta.texY = -ny * 2
         }
 
         innerElem.style.left = (25 + nx * 25) + '%'
@@ -440,12 +650,70 @@ const callback =
         }
         else return
 
+        
+        if(mode.dimension === 3 && innerElem.id === 'scroll')
+        {
+            control.delta.x = 0
+            control.delta.y = 0
+        }
+        if(mode.dimension === 3 && innerElem.id === 'rotate')
+        {
+            control.delta.rotX = 0
+            control.delta.rotY = 0
+        }
+        if(mode.dimension === 2 && innerElem.id === 'scroll')
+        {
+            control.delta.texX = 0
+            control.delta.texY = 0
+        }
+        if(mode.dimension === 2 && innerElem.id === 'rotate')
+        {
+            control.delta.texX = 0
+            control.delta.texY = 0
+        }
+
+        // 丸め
+        /*
+        if(mode.dimension === 3 && innerElem.id === 'scroll')
+        {
+            control.delta.x = 0
+            control.delta.y = 0
+            const w = object.grid / 2
+            const h = object.grid / 2
+            control.current.x = Math.round(control.current.x * w) / w
+            control.current.y = Math.round(control.current.y * h) / h
+        }
+        if(mode.dimension === 3 && innerElem.id === 'rotate')
+        {
+            control.delta.rotX = 0
+            control.delta.rotY = 0
+            //control.current.rotX = 
+            //control.current.rotY = 
+        }
+        if(mode.dimension === 2 && innerElem.id === 'scroll')
+        {
+            control.delta.texX = 0
+            control.delta.texY = 0
+            const w = object.texture.width / 2
+            const h = object.texture.height / 2
+            control.current.texX = (Math.floor(control.current.texX * w) + 0.5) / w
+            control.current.texY = (Math.floor(control.current.texY * h) + 0.5) / h
+        }
+        if(mode.dimension === 2 && innerElem.id === 'rotate')
+        {
+            control.delta.texX = 0
+            control.delta.texY = 0
+            const w = object.texture.width / 2
+            const h = object.texture.height / 2
+            control.current.texX = (Math.floor(control.current.texX * w) + 0.5) / w
+            control.current.texY = (Math.floor(control.current.texY * h) + 0.5) / h
+        }
+        */
+
         control.delta.x = 0
         control.delta.y = 0
         control.delta.z = 0
         control.delta.t = 0
-        control.delta.rotX = 0
-        control.delta.rotY = 0
         control.delta.texX = 0
         control.delta.texY = 0
     
@@ -459,6 +727,88 @@ const callback =
         .then(registration => {
             registration.unregister();
         })
+    },
+    put: (e) =>
+    {
+        // テクセル描き
+        if(mode.name === 'texel')
+        {
+            control.texel.put = !control.texel.put
+            control.texel.remove = false
+
+            if(control.texel.put) addClass(element.put, 'selected')
+            else removeClass(element.put, 'selected')
+            removeClass(element.remove, 'selected')
+        }
+    },
+    remove: (e) =>
+    {
+        // テクセル消し
+        if(mode.name === 'texel')
+        {
+            control.texel.remove = !control.texel.remove
+            control.texel.put = false
+
+            if(control.texel.remove) addClass(element.remove, 'selected')
+            else removeClass(element.remove, 'selected')
+            removeClass(element.put, 'selected')
+        }
+    },
+    texelColor: (e) =>
+    {
+        const v = element.texelColor.value
+        const r = v.substring(1, 3)
+        const g = v.substring(3, 5)
+        const b = v.substring(5, 7)
+
+        control.texel.color[0] = parseInt(r, 16)
+        control.texel.color[1] = parseInt(g, 16)
+        control.texel.color[2] = parseInt(b, 16)
+        control.texel.color[3] = 255
+    },
+    positionReset: (e) =>
+    {
+        const t = e.target
+        if(t.id === 'position-x')
+        {
+            control.current.x = 0
+            element.positionX.textContent = 'x: 0'
+        }
+        if(t.id === 'position-y')
+        {
+            control.current.y = 0
+            element.positionY.textContent = 'y: 0'
+        }
+        if(t.id === 'position-z')
+        {
+            control.current.z = 0
+            element.positionZ.textContent = 'z: 0'
+        }
+        if(t.id === 'position-t')
+        {
+            control.current.t = 0
+            element.time.textContent = 't: 0'
+        }
+        if(t.id === 'rotate-x')
+        {
+            control.current.rotX = 0
+            element.rotateX.textContent = 'rx: 0'
+        }
+        if(t.id === 'rotate-y')
+        {
+            control.current.rotY = 0
+            element.rotateY.textContent = 'ry: 0'
+        }
+        if(t.id === 'texture-x')
+        {
+            control.current.texX = 0
+            element.textureX.textContent = 'tx: 0'
+        }
+        if(t.id === 'texture-y')
+        {
+            control.current.texY = 0
+            element.textureY.textContent = 'ty: 0'
+        }
     },
     preventDefault: (e) =>
     {
@@ -474,6 +824,9 @@ const callback =
 
 // ロードとセーブのイベント
 element.saveForm.addEventListener('submit', callback.save)
+// パラメータ適用
+element.param3dForm.addEventListener('submit', callback.apply3d)
+element.param2dForm.addEventListener('submit', callback.apply2d)
 //element.newButton.addEventListener('click', callback.deleteCaches)
 // モード変更ボタンが押された時のイベント
 element.param3dMode.addEventListener('pointerdown', callback.changeMode)
@@ -561,6 +914,30 @@ element.scrollPad.addEventListener('touchcancel', callback.releasePad)
 element.scroll.addEventListener('touchcancel', callback.releasePad)
 element.rotatePad.addEventListener('touchcancel', callback.releasePad)
 element.rotate.addEventListener('touchcancel', callback.releasePad)
+// ボタンを押した時のイベント
+element.put.addEventListener('mousedown', callback.put)
+element.put.addEventListener('touchstart', callback.put, { passive: true })
+element.remove.addEventListener('mousedown', callback.remove)
+element.remove.addEventListener('touchstart', callback.remove, { passive: true })
+// ボタンを押した時のイベント
+element.texelColor.addEventListener('change', callback.texelColor)
+// 座標の表示を押した時のイベント
+element.positionX.addEventListener('mousedown', callback.positionReset)
+element.positionX.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.positionY.addEventListener('mousedown', callback.positionReset)
+element.positionY.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.positionZ.addEventListener('mousedown', callback.positionReset)
+element.positionZ.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.time.addEventListener('mousedown', callback.positionReset)
+element.time.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.rotateX.addEventListener('mousedown', callback.positionReset)
+element.rotateX.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.rotateY.addEventListener('mousedown', callback.positionReset)
+element.rotateY.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.textureX.addEventListener('mousedown', callback.positionReset)
+element.textureX.addEventListener('touchstart', callback.positionReset, { passive: true })
+element.textureY.addEventListener('mousedown', callback.positionReset)
+element.textureY.addEventListener('touchstart', callback.positionReset, { passive: true })
 
 // 選択禁止
 document.addEventListener('selectstart', callback.returnFalse, { passive: false })
