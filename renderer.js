@@ -330,16 +330,16 @@ const Matrix = class
 // シェーダー
 const Shader = class
 {
-    #shaderType = null
+    type = null
 
-    constructor(shaderType, renderer)
+    constructor(type, renderer)
     {
-        this.#shaderType = shaderType
+        this.type = type
         const gl = renderer.gl
         
         let vertexShaderString, fragmentShaderString
         
-        if(shaderType === 'color')
+        if(type === 'color')
         {
             vertexShaderString =
                 `#version 300 es
@@ -373,7 +373,7 @@ const Shader = class
                     }
                 `
         }
-        else if(shaderType === 'texture')
+        else if(type === 'texture')
         {
             vertexShaderString =
                 `#version 300 es
@@ -398,7 +398,7 @@ const Shader = class
             fragmentShaderString =
                 `#version 300 es
                     precision highp sampler2D;
-                    precision mediump float;
+                    precision highp float;
                     
                     in vec3 varColor;
                     in vec2 varCoordinate;
@@ -413,153 +413,86 @@ const Shader = class
                     }
                 `
         }
-        else if(shaderType === 'flat') {
+        else if(type === 'sprite')
+        {
             vertexShaderString =
                 `#version 300 es
                 
                     in vec3 position;
-                    in vec3 normal;
+                    in vec3 color;
                     
-                    flat out vec4 varColor;
-                    
-                    uniform mat4 rotateMatrix;
+                    out vec3 varColor;
+
+                    uniform float pointSize;
                     uniform mat4 matrix;
                     
                     void main(void)
                     {
-                        vec3 n = normalize((rotateMatrix * vec4(normal, 0.0)).xyz);
-                        vec3 l = normalize(vec3(0.0, 1.0, -1.0));
-                        float c = dot(n, l);
-                        varColor = vec4(c, c, c, 1.0);
+                        varColor = color;
                         gl_Position = matrix * vec4(position, 1.0);
+                        gl_PointSize = pointSize;
                     }
                 `
             
             fragmentShaderString =
                 `#version 300 es
-                
-                    precision mediump float;
+                    precision highp sampler2D;
+                    precision highp float;
                     
-                    flat in vec4 varColor;
-                    
+                    in vec3 varColor;
+
                     out vec4 outColor;
+
+                    uniform sampler2D sampler;
                     
                     void main(void)
                     {
-                        outColor = varColor;
+                        outColor = vec4(varColor, 1.0) * texture(sampler, gl_PointCoord);
                     }
                 `
         }
-        else if(shaderType === 'vertex') {
-            vertexShaderString =
-                `#version 300 es
-                
-                    in vec3 position;
-                    in vec3 normal;
-                    
-                    out vec4 varColor;
-                    
-                    uniform mat4 rotateMatrix;
-                    uniform mat4 matrix;
-                    
-                    void main()
-                    {
-                        vec3 n = normalize((rotateMatrix * vec4(normal, 0.0)).xyz);
-                        vec3 l = normalize(vec3(0.0, 1.0, -1.0));
-                        float c = dot(n, l);
-                        varColor = vec4(c, c, c, 1.0);
-                        gl_Position = matrix * vec4(position, 1.0);
-                    }
-                `
-            
-            fragmentShaderString =
-                `#version 300 es
-                
-                    precision mediump float;
-                    
-                    in vec4 varColor;
-                    
-                    out vec4 outColor;
-                    
-                    void main()
-                    {
-                        outColor = varColor;
-                    }
-                `
-        }
-        else if(shaderType === 'fragment') {
-            vertexShaderString =
-                `#version 300 es
-                
-                    in vec3 position;
-                    in vec3 normal;
-                    
-                    out vec3 varNormal;
-                    
-                    uniform mat4 rotateMatrix;
-                    uniform mat4 matrix;
-                    
-                    void main()
-                    {
-                        varNormal = (rotateMatrix * vec4(normal, 0.0)).xyz;
-                        gl_Position = matrix * vec4(position, 1.0);
-                    }
-                `
-            
-            fragmentShaderString =
-                `#version 300 es
-                
-                    precision mediump float;
-                    
-                    in vec3 varNormal;
-                    
-                    out vec4 outColor;
-                    
-                    void main()
-                    {
-                        vec3 n = normalize(varNormal);
-                        vec3 l = normalize(vec3(0.0, 1.0, -1.0));
-                        float c = dot(n, l);
-                        outColor = vec4(c, c, c, 1.0);
-                    }
-                `
-        }
-        else {
+        else
+        {
             console.error('Shader type error.')
             return
         }
 
-        const renderVertexShader = gl.createShader(gl.VERTEX_SHADER)
-        gl.shaderSource(renderVertexShader, vertexShaderString)
-        gl.compileShader(renderVertexShader)
-        if(!gl.getShaderParameter(renderVertexShader, gl.COMPILE_STATUS))
-            console.error(gl.getShaderInfoLog(renderVertexShader))
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER)
+        gl.shaderSource(vertexShader, vertexShaderString)
+        gl.compileShader(vertexShader)
+        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS))
+            console.error(gl.getShaderInfoLog(vertexShader))
         
-        const renderFragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
-        gl.shaderSource(renderFragmentShader, fragmentShaderString)
-        gl.compileShader(renderFragmentShader)
-        if(!gl.getShaderParameter(renderFragmentShader, gl.COMPILE_STATUS))
-            console.error(gl.getShaderInfoLog(renderFragmentShader))
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
+        gl.shaderSource(fragmentShader, fragmentShaderString)
+        gl.compileShader(fragmentShader)
+        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS))
+            console.error(gl.getShaderInfoLog(fragmentShader))
         
-        const renderProgram = gl.createProgram()
-        gl.attachShader(renderProgram, renderVertexShader)
-        gl.attachShader(renderProgram, renderFragmentShader)
-        gl.linkProgram(renderProgram)
-        if(gl.getProgramParameter(renderProgram, gl.LINK_STATUS))
+        const program = gl.createProgram()
+        gl.attachShader(program, vertexShader)
+        gl.attachShader(program, fragmentShader)
+        gl.linkProgram(program)
+        if(gl.getProgramParameter(program, gl.LINK_STATUS))
         {
-            gl.useProgram(renderProgram)
-            this.renderProgram = renderProgram
+            gl.useProgram(program)
+            this.program = program
         }
         else
-            console.error(gl.getProgramInfoLog(renderProgram))
+            console.error(gl.getProgramInfoLog(program))
         
         // ロケーション
-        this.renderMatrixLocation = gl.getUniformLocation(renderProgram, 'matrix')
-        //this.#renderRotateMatrixLocation = gl.getUniformLocation(renderProgram, 'rotateMatrix')
-        this.renderPositionLocation = gl.getAttribLocation(renderProgram, 'position')
-        this.renderColorLocation = gl.getAttribLocation(renderProgram, 'color')
-        this.renderSamplerLocation = gl.getUniformLocation(renderProgram, 'sampler')
-        this.renderCoordinateLocation = gl.getAttribLocation(renderProgram, 'coordinate')
+        this.matrixLocation = gl.getUniformLocation(program, 'matrix')
+        this.positionLocation = gl.getAttribLocation(program, 'position')
+        this.colorLocation = gl.getAttribLocation(program, 'color')
+        if(type !== 'color' && type !== 'sprite')
+        {
+            this.samplerLocation = gl.getUniformLocation(program, 'sampler')
+            this.coordinateLocation = gl.getAttribLocation(program, 'coordinate')
+        }
+        if(type === 'sprite')
+            this.pointSizeLocation = gl.getUniformLocation(program, 'pointSize')
+        //this.#renderRotateMatrixLocation = gl.getUniformLocation(program, 'rotateMatrix')
     }
 }
 
@@ -575,6 +508,7 @@ const Model = class
     #vbo = null
     #ibo = null
     #texture = null
+    #pointSize = 16
     #matrix = null
     #shader = null
 
@@ -593,8 +527,8 @@ const Model = class
         gl.bindTexture(gl.TEXTURE_2D, this.#texture.glTexture)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
         gl.bindTexture(gl.TEXTURE_2D, null)
     }
 
@@ -606,61 +540,82 @@ const Model = class
 
     #drawReady()
     {
-        const renderer = this.#renderer
         const gl = this.gl
+
+        gl.useProgram(this.#shader.program)
 
         if(this.#texture.glTexture != undefined)
         {
             gl.activeTexture(gl.TEXTURE0)
             gl.bindTexture(gl.TEXTURE_2D, this.#texture.glTexture)
-            gl.uniform1i(this.#shader.renderSamplerLocation, 0)
+            gl.uniform1i(this.#shader.samplerLocation, 0)
         }
 
-        if(gl.getProgramParameter(this.#shader.renderProgram, gl.LINK_STATUS))
-            gl.useProgram(this.#shader.renderProgram)
+        if(gl.getProgramParameter(this.#shader.program, gl.LINK_STATUS))
+            gl.useProgram(this.#shader.program)
 
-		gl.uniformMatrix4fv(this.#shader.renderMatrixLocation, false, this.#matrix.matrix)
+        gl.uniformMatrix4fv(this.#shader.matrixLocation, false, this.#matrix.matrix)
         
 		//gl.uniformMatrix4fv(this.#renderRotateMatrixLocation, false, this.#matrix.rotateMatrix)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.#vbo)
         
-        gl.enableVertexAttribArray(this.#shader.renderPositionLocation)
-        gl.vertexAttribPointer(this.#shader.renderPositionLocation, 3, gl.FLOAT, false, (3 + 3 + 2) * 4, 0)
-        
-        gl.enableVertexAttribArray(this.#shader.renderColorLocation)
-        gl.vertexAttribPointer(this.#shader.renderColorLocation, 3, gl.FLOAT, false, (3 + 3 + 2) * 4, 3 * 4)
-        
-        gl.enableVertexAttribArray(this.#shader.renderCoordinateLocation)
-        gl.vertexAttribPointer(this.#shader.renderCoordinateLocation, 2, gl.FLOAT, false, (3 + 3 + 2) * 4, (3 + 3) * 4)
+        if(this.#shader.type === 'color')
+        {
+            gl.enableVertexAttribArray(this.#shader.positionLocation)
+            gl.vertexAttribPointer(this.#shader.positionLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 0)
+            
+            gl.enableVertexAttribArray(this.#shader.colorLocation)
+            gl.vertexAttribPointer(this.#shader.colorLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 3 * 4)
+        }
+        if(this.#shader.type === 'texture')
+        {
+            gl.enableVertexAttribArray(this.#shader.positionLocation)
+            gl.vertexAttribPointer(this.#shader.positionLocation, 3, gl.FLOAT, false, (3 + 3 + 2) * 4, 0)
+            
+            gl.enableVertexAttribArray(this.#shader.colorLocation)
+            gl.vertexAttribPointer(this.#shader.colorLocation, 3, gl.FLOAT, false, (3 + 3 + 2) * 4, 3 * 4)
+            
+            gl.enableVertexAttribArray(this.#shader.coordinateLocation)
+            gl.vertexAttribPointer(this.#shader.coordinateLocation, 2, gl.FLOAT, false, (3 + 3 + 2) * 4, (3 + 3) * 4)
+        }
+        if(this.#shader.type === 'sprite')
+        {
+            gl.uniform1f(this.#shader.pointSizeLocation, this.#pointSize)
+            gl.enableVertexAttribArray(this.#shader.positionLocation)
+            gl.vertexAttribPointer(this.#shader.positionLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 0)
+            
+            gl.enableVertexAttribArray(this.#shader.colorLocation)
+            gl.vertexAttribPointer(this.#shader.colorLocation, 3, gl.FLOAT, false, (3 + 3) * 4, 3 * 4)
+        }
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#ibo)
     }
 
     drawPoints()
     {
+        const gl = this.gl
+
         this.#drawReady()
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, renderer.framebuffer)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.#renderer.framebuffer)
         gl.drawElements(gl.POINTS, this.#index.length, gl.UNSIGNED_SHORT, 0)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     }
 
     drawTriangles()
     {
-        const renderer = this.#renderer
         const gl = this.gl
 
         this.#drawReady()
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, renderer.framebuffer)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.#renderer.framebuffer)
         gl.drawElements(gl.TRIANGLES, this.#index.length, gl.UNSIGNED_SHORT, 0)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     }
 
     #createVbo()
     {
-        if(!this.#position || !this.#color || !this.#coordinate) return
         const gl = this.gl
 
         const position = this.#position
@@ -670,14 +625,23 @@ const Model = class
         const vertex = []
         for(let i = 0; i < position.length / 3; i++)
         {
-            vertex.push(position[i * 3 + 0])
-            vertex.push(position[i * 3 + 1])
-            vertex.push(position[i * 3 + 2])
-            vertex.push(color[i * 3 + 0])
-            vertex.push(color[i * 3 + 1])
-            vertex.push(color[i * 3 + 2])
-            vertex.push(coordinate[i * 2 + 0])
-            vertex.push(coordinate[i * 2 + 1])
+            if(position)
+            {
+                vertex.push(position[i * 3 + 0])
+                vertex.push(position[i * 3 + 1])
+                vertex.push(position[i * 3 + 2])
+            }
+            if(color)
+            {
+                vertex.push(color[i * 3 + 0])
+                vertex.push(color[i * 3 + 1])
+                vertex.push(color[i * 3 + 2])
+            }
+            if(coordinate)
+            {
+                vertex.push(coordinate[i * 2 + 0])
+                vertex.push(coordinate[i * 2 + 1])
+            }
         }
 
         const vbo = gl.createBuffer()
@@ -738,6 +702,11 @@ const Model = class
     set matrix(m)
     {
         this.#matrix = m
+    }
+
+    set pointSize(s)
+    {
+        this.#pointSize = s
     }
 }
 
@@ -892,7 +861,7 @@ const Renderer = class
     {
         const gl = this.gl
 
-        if(this.#frameTexture != null)
+        if(this.#frameTexture != undefined)
         {
             gl.activeTexture(gl.TEXTURE0 + 0)
             gl.bindTexture(gl.TEXTURE_2D, this.#frameTexture)
