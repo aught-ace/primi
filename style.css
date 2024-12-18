@@ -79,45 +79,110 @@
     }
     #mode-2d
     {
-        grid-column: 9 / 17;
-        grid-row: 19 / 21;
+        grid-column: 1 / 9;
+        grid-row: 21 / 23;
     }
-    #mode-param
+    #position-x
     {
-        grid-column: 9 / 17;
+        grid-column: 9 / 11;
+        grid-row: 19 / 20;
+    }
+    #position-y
+    {
+        grid-column: 11 / 13;
+        grid-row: 19 / 20;
+    }
+    #position-z
+    {
+        grid-column: 13 / 15;
+        grid-row: 19 / 20;
+    }
+    #position-t
+    {
+        grid-column: 15 / 17;
+        grid-row: 19 / 20;
+    }
+    #rotate-x
+    {
+        grid-column: 9 / 11;
+        grid-row: 20 / 21;
+    }
+    #rotate-y
+    {
+        grid-column: 11 / 13;
+        grid-row: 20 / 21;
+    }
+    #texture-x
+    {
+        grid-column: 13 / 15;
+        grid-row: 20 / 21;
+    }
+    #texture-y
+    {
+        grid-column: 15 / 17;
+        grid-row: 20 / 21;
+    }
+    #select
+    {
+        grid-column: 10 / 12;
+        grid-row: 21 / 23;
+    }
+    #up
+    {
+        grid-column: 12 / 14;
+        grid-row: 21 / 23;
+    }
+    #remove
+    {
+        grid-column: 14 / 16;
         grid-row: 21 / 23;
     }
     #scroll-pad
     {
         grid-column: 10 / 14;
-        grid-row: 24 / 28;
+        grid-row: 23 / 27;
     }
     #depth-bar
     {
         grid-column: 14 / 16;
-        grid-row: 24 / 28;
+        grid-row: 23 / 27;
     }
     #time-bar
     {
         grid-column: 10 / 12;
-        grid-row: 28 / 32;
+        grid-row: 27 / 31;
     }
     #rotate-pad
     {
         grid-column: 12 / 16;
-        grid-row: 28 / 32;
+        grid-row: 27 / 31;
+    }
+    #grab
+    {
+        grid-column: 10 / 12;
+        grid-row: 31 / 33;
+    }
+    #down
+    {
+        grid-column: 12 / 14;
+        grid-row: 31 / 33;
+    }
+    #put
+    {
+        grid-column: 14 / 16;
+        grid-row: 31 / 33;
     }
     #param-3d-div,
     #param-2d-div,
     #vertex-div,
     #surface-div,
     #matrix-div,
-    #animation-3d-div,
-    #animation-2d-div,
+    #pose-3d-div,
+    #pose-2d-div,
     #texel-div
     {
         grid-column: 1 / 9;
-        grid-row: 21 / 33;
+        grid-row: 23 / 33;
     }
 }
 
@@ -139,62 +204,122 @@
         grid-column: 1 / 9;
         grid-row: 3 / 5;
     }
-    #import-export-div
+    #mode-3d
     {
         grid-column: 1 / 9;
         grid-row: 5 / 7;
     }
-    #mode-3d
-    {
-        grid-column: 25 / 33;
-        grid-row: 1 / 3;
-    }
     #mode-2d
     {
-        grid-column: 25 / 33;
-        grid-row: 3 / 5;
+        grid-column: 1 / 9;
+        grid-row: 7 / 9;
     }
-    #mode-param
+    #position-x
     {
-        grid-column: 25 / 33;
-        grid-row: 5 / 7;
+        grid-column: 25 / 27;
+        grid-row: 1 / 2;
+    }
+    #position-y
+    {
+        grid-column: 27 / 29;
+        grid-row: 1 / 2;
+    }
+    #position-z
+    {
+        grid-column: 29 / 31;
+        grid-row: 1 / 2;
+    }
+    #position-t
+    {
+        grid-column: 31 / 33;
+        grid-row: 1 / 2;
+    }
+    #rotate-x
+    {
+        grid-column: 25 / 27;
+        grid-row: 2 / 3;
+    }
+    #rotate-y
+    {
+        grid-column: 27 / 29;
+        grid-row: 2 / 3;
+    }
+    #texture-x
+    {
+        grid-column: 29 / 31;
+        grid-row: 2 / 3;
+    }
+    #texture-y
+    {
+        grid-column: 31 / 33;
+        grid-row: 2 / 3;
     }
     #canvas
     {
         grid-column: 9 / 25;
         grid-row: 1 / 17;
     }
+    #select
+    {
+        grid-column: 26 / 28;
+        grid-row: 4 / 6;
+    }
+    #up
+    {
+        grid-column: 28 / 30;
+        grid-row: 4 / 6;
+    }
+    #remove
+    {
+        grid-column: 30 / 32;
+        grid-row: 4 / 6;
+    }
     #scroll-pad
     {
         grid-column: 26 / 30;
-        grid-row: 8 / 12;
+        grid-row: 6 / 10;
     }
     #depth-bar
     {
         grid-column: 30 / 32;
-        grid-row: 8 / 12;
+        grid-row: 6 / 10;
     }
     #time-bar
     {
         grid-column: 26 / 28;
-        grid-row: 12 / 16;
+        grid-row: 10 / 14;
     }
     #rotate-pad
     {
         grid-column: 28 / 32;
-        grid-row: 12 / 16;
+        grid-row: 10 / 14;
+    }
+    #grab
+    {
+        grid-column: 26 / 28;
+        grid-row: 14 / 16;
+    }
+    #down
+    {
+        grid-column: 28 / 30;
+        grid-row: 14 / 16;
+    }
+    #put
+    {
+        grid-column: 30 / 32;
+        grid-row: 14 / 16;
     }
     #param-3d-div,
     #param-2d-div,
     #vertex-div,
     #surface-div,
     #matrix-div,
-    #animation-3d-div,
-    #animation-2d-div,
+    #pose-3d-div,
+    #pose-2d-div,
     #texel-div
     {
         grid-column: 1 / 9;
-        grid-row: 5 / 17;
+        grid-row: 9 / 17;
     }
 }
 
@@ -207,7 +332,8 @@
     display: grid;
 }
 
-/* モード */
+/* モード関係 */
+/*
 .label
 {
     width: 2em;
@@ -217,14 +343,15 @@
     vertical-align: middle;
     display: inline-block;
 }
-#animation-3d-mode,
+*/
+#pose-3d-mode,
 #vertex-3d-mode,
 #surface-mode,
 #matrix-mode
 {
     width: calc((100% - 2em) / 4);
 }
-#animation-2d-mode,
+#pose-2d-mode,
 #vertex-2d-mode,
 #texel-mode
 {
@@ -233,15 +360,29 @@
 #param-3d-mode,
 #param-2d-mode
 {
-    width: calc((100% - 2em) / 2);
+    width: 2em;
 }
-
+#mode-2d #param-2d-mode,
+#mode-3d #param-3d-mode
+{
+    border-radius: 0.5em 0 0 0.5em;
+}
+#mode-3d #pose-3d-mode,
+#mode-2d #pose-2d-mode
+{
+    border-radius: 0 0.5em 0.5em 0;
+}
+#mode-3d .radio-button,
+#mode-2d .radio-button
+{
+    border-radius: 0;
+}
 
 #save-div,
 #load-div,
 #mode-3d,
 #mode-2d,
-#mode-param,
+#matrix-div,
 #param-3d-div,
 #param-2d-div,
 #vertex-div,
@@ -281,6 +422,15 @@
 {
     border-radius: 0 0.5em 0.5em 0;
 }
+/* ボタンの形を変えてくっつける */
+#name
+{
+    border-radius: 0.5em 0 0 0.5em;
+}
+#save
+{
+    border-radius: 0 0.5em 0.5em 0;
+}
 
 /* キャンバス*/
 #canvas
@@ -288,6 +438,20 @@
     width: 100%;
     height: 100%;
     image-rendering: pixelated;
+}
+
+/* カレント座標表示 */
+#position-x,
+#position-y,
+#position-z,
+#position-t,
+#rotate-x,
+#rotate-y,
+#texture-x,
+#texture-y
+{
+    text-align: center;
+    padding: 0.5em 0;
 }
 
 /* スクロールパッド */
@@ -335,21 +499,10 @@
     position: relative;
 }
 
-/* ボタンの形を変えてくっつける */
-#name
-{
-    border-radius: 0.5em 0 0 0.5em;
-}
-#save
-{
-    border-radius: 0 0.5em 0.5em 0;
-}
-
 /* spanでできたラジオボタン */
 .radio-button
 {
     background-color: #666;
-    color: #FFF;
     padding: 1.25em 0;
     border-style: none;
     text-align: center;
@@ -357,54 +510,64 @@
     height: 3.5em;
     display: inline-block;
 }
-#mode-2d #vertex-2d-mode,
-#mode-3d #vertex-3d-mode,
-#mode-param #param-3d-mode
-{
-    border-radius: 0.5em 0 0 0.5em;
-}
-#mode-3d #animation-3d-mode,
-#mode-2d #animation-2d-mode,
-#mode-param #param-2d-mode
-{
-    border-radius: 0 0.5em 0.5em 0;
-}
-#mode-3d .radio-button,
-#mode-2d .radio-button
-{
-    border-radius: 0;
-}
-
-/* spanでできたボタン */
-.button
-{
-    background-color: #666;
-    color: #FFF;
-    padding: 1.25em 0;
-    border-style: none;
-    border-radius: 0.5em;
-    height: 3.5em;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-/* 頂点や面などを作るボタン */
-.new-item
-{
-    text-align: center;
-    display: block;
-}
-
-/* ラジオボタン用のspan */
 .radio-button.selected
 {
     background-color: #444;
-    color: #FFF;
 }
-.button.selected
+
+/* spanやdivでできたボタン */
+.button,
+.first-button,
+.second-button,
+.third-button
+{
+    padding: 1.5em 0;
+    border-style: none;
+    border-radius: 0.5em;
+    height: 4em;
+    text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+}
+.button
+{
+    background-color: #666;
+}
+.button:active
 {
     background-color: #444;
-    color: #FFF;
+}
+.first-button,
+.second-button,
+.third-button
+{
+    background-color: #666;
+}
+.first-button:active,
+.second-button:active,
+.third-button:active
+{
+    background-color: #444;
+}
+/* ボタンの形 */
+.third-button
+{
+    border-radius: 2em 0 0 2em;
+}
+.second-button
+{
+    border-radius: 0;
+}
+.first-button
+{
+    border-radius: 0 2em 2em 0;
+}
+
+/* 適用ボタン */
+.apply
+{
+    text-align: center;
+    display: block;
 }
 
 /* 入力欄 */
@@ -421,9 +584,10 @@ input[type="number"]
     vertical-align: middle;
     outline: none;
 }
+input[type="text"],
 input[type="number"]
 {
-    width: 6em;
+    width: 100%;
 }
 
 /* ボタン */
@@ -454,15 +618,10 @@ input[disabled]
 }
 
 /* データリスト */
-dt
-{
-    line-height: 2em;
-    padding: 0.5em 0 0 0;
-}
+dt,
 dd
 {
     line-height: 2em;
-    padding: 0.5em 0 0 0;
 }
 
 /* リンク */
@@ -528,7 +687,7 @@ html
     font-family: sans-serif;
     font-size: 1em;
     line-height: 1em;
-    word-spacing: 0.25em;
+    word-spacing: 0.125em;
     box-sizing: border-box;
     scrollbar-color: #AAA #888;
     scrollbar-width: 0.5em;

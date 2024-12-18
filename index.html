@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
     <head>
         <meta charset="UTF-8">
         <meta
@@ -28,96 +28,95 @@
                     id="new" value="New" type="button">
             </div>
             <div id="mode-3d">
-                <span class="label">3D</span><span
-                    id="vertex-3d-mode" class="radio-button selected">Vert</span><span
+                <span
+                    id="param-3d-mode" class="radio-button selected">3D</span><span
+                    id="vertex-3d-mode" class="radio-button">Vert</span><span
                     id="surface-mode" class="radio-button">Surf</span><span
                     id="matrix-mode" class="radio-button">Mat</span><span
-                    id="animation-3d-mode" class="radio-button">Anim</span>
+                    id="pose-3d-mode" class="radio-button">Pose</span>
             </div>
             <div id="mode-2d">
-                <span class="label">2D</span><span
+                <span
+                    id="param-2d-mode" class="radio-button">2D</span><span
                     id="vertex-2d-mode" class="radio-button">Vert</span><span
                     id="texel-mode" class="radio-button">Tex</span><span
-                    id="animation-2d-mode" class="radio-button">Anim</span>
-            </div>
-            <div id="mode-param">
-                <span class="label">Set</span><span
-                    id="param-3d-mode" class="radio-button">3D</span><span
-                    id="param-2d-mode" class="radio-button">2D</span>
+                    id="pose-2d-mode" class="radio-button">Pose</span>
             </div>
 
             <canvas id="canvas"></canvas>
+
+            <div id="position-x">x: 0</div>
+            <div id="position-y">y: 0</div>
+            <div id="position-z">z: 0</div>
+            <div id="position-t">t: 0</div>
+
+            <div id="rotate-x">rx: 0</div>
+            <div id="rotate-y">ry: 0</div>
+            <div id="texture-x">tx: 0</div>
+            <div id="texture-y">ty: 0</div>
+
+            <div id="select" class="third-button">Sel</div>
+            <div id="up" class="second-button">Up</div>
+            <div id="remove" class="first-button">Rem</div>
+            
+            <div id="grab" class="third-button">Grab</div>
+            <div id="down" class="second-button">Down</div>
+            <div id="put" class="first-button">Put</div>
+
+            <div id="scroll-pad">
+                <div id="scroll" style="left:25%;top:25%;">Scroll</div>
+            </div>
             <div id="depth-bar">
                 <div id="depth" style="top:25%;">Depth</div>
             </div>
-            
             <div id="time-bar">
                 <div id="time" style="top:25%;">Time</div>
-            </div>
-            
-            <div id="scroll-pad">
-                <div id="scroll" style="left:25%;top:25%;">Scroll</div>
             </div>
             <div id="rotate-pad">
                 <div id="rotate" style="left:25%;top:25%;">Rotate</div>
             </div>
 
-            <div id="param-3d-div" class="none">
+            <div id="param-3d-div">
                 <form id="param-3d-form" action="">
                     <dl>
-                        <dt>Horizontal</dt>
+                        <dt>Grids per 1m</dt>
                         <dd>
-                            <input id="left" value="-7" min="-255" max="255" type="number"> -
-                            <input id="right" value="7" min="-255" max="255" type="number">
-                        </dd>
-                        <dt>Vertical</dt>
-                        <dd>
-                            <input id="top" value="-7" min="-255" max="255" type="number"> -
-                            <input id="bottom" value="7" min="-255" max="255" type="number">
-                        </dd>
-                        <dt>Depth</dt>
-                        <dd>
-                            <input id="near" value="-7" min="-255" max="255" type="number"> -
-                            <input id="far" value="7" min="-255" max="255" type="number">
+                            <input id="grid" value="4" min="1" max="255" type="number">
                         </dd>
                         <dt>Appry</dt>
                         <dd>
-                            <div id="apply-3d" class="new-item button">Apply</div>
+                            <div id="apply-3d" class="apply button">Apply</div>
                         </dd>
                     </dl>
                 </form>
             </div>
-            
             <div id="param-2d-div" class="none">
                 <form id="param-2d-form" action="">
                     <dl>
                         <dt>Width</dt>
-                        <dd><input id="texture-width" value="16" min="1" max="256" type="number"></dd>
+                        <dd><input id="texture-width" value="16" min="1" max="255" type="number"></dd>
                         <dt>Height</dt>
-                        <dd><input id="texture-height" value="16" min="1" max="256" type="number"></dd>
+                        <dd><input id="texture-height" value="16" min="1" max="255" type="number"></dd>
                         <dt>Appry</dt>
                         <dd>
-                            <div id="apply-2d" class="new-item button">Apply</div>
+                            <div id="apply-2d" class="apply button">Apply</div>
                         </dd>
                     </dl>
                 </form>
             </div>
-
-            <div id="vertex-div">
+            <div id="vertex-div" class="none">
                 <div id="vertice-list"></div>
-                <div id="new-vertex" class="new-item button">New Vertex</div>
             </div>
             <div id="matrix-div" class="none">
                 <div id="matrix-list"></div>
-                <div id="new-matrix" class="new-item button">New Matrix</div>
             </div>
             <div id="surface-div" class="none">
             </div>
             <div id="texel-div" class="none">
             </div>
-            <div id="animation-3d-div" class="none">
+            <div id="pose-3d-div" class="none">
             </div>
-            <div id="animation-2d-div" class="none">
+            <div id="pose-2d-div" class="none">
             </div>
         </div>
 
