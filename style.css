@@ -1,3 +1,16 @@
+/* 2/1よりも横長 */
+@media (max-aspect-ratio: 2/1) and (orientation: landscape)
+{
+    #editor
+    {
+        width: 100svw;
+        height: 50svw;
+        left: 0;
+        top: 0;
+        /*top: calc(50svh - 25svw);*/
+        font-size: calc(50svw / 32);
+    }
+}
 /* 2/1よりも縦長 */
 @media (min-aspect-ratio: 2/1) and (orientation: landscape)
 {
@@ -10,16 +23,17 @@
         font-size: calc(100svh / 32);
     }
 }
-/* 2/1よりも横長 */
-@media (max-aspect-ratio: 2/1) and (orientation: landscape)
+/* 1/2よりも横長 */
+@media (max-aspect-ratio: 1/2) and (orientation: portrait)
 {
     #editor
     {
         width: 100svw;
-        height: 50svw;
+        height: 200svw;
         left: 0;
-        top: calc(50svh - 25svw);
-        font-size: calc(50svw / 32);
+        top: 0;
+        /*top: calc(50svh - 100svw);*/
+        font-size: calc(200svw / 64);
     }
 }
 /* 1/2よりも縦長 */
@@ -32,18 +46,6 @@
         left: calc(50svw - 25svh);
         top: 0;
         font-size: calc(100svh / 64);
-    }
-}
-/* 1/2よりも横長 */
-@media (max-aspect-ratio: 1/2) and (orientation: portrait)
-{
-    #editor
-    {
-        width: 100svw;
-        height: 200svw;
-        left: 0;
-        top: calc(50svh - 100svw);
-        font-size: calc(200svw / 64);
     }
 }
 
