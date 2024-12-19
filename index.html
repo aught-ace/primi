@@ -32,15 +32,15 @@
                     id="param-3d-mode" class="radio-button selected">3D</span><span
                     id="vertex-3d-mode" class="radio-button">Vert</span><span
                     id="surface-mode" class="radio-button">Surf</span><span
-                    id="matrix-mode" class="radio-button">Mat</span><span
-                    id="pose-3d-mode" class="radio-button">Pose</span>
+                    id="matrix-mode" class="radio-button disabled">Mat</span><span
+                    id="pose-3d-mode" class="radio-button disabled">Pose</span>
             </div>
             <div id="mode-2d">
                 <span
                     id="param-2d-mode" class="radio-button">2D</span><span
                     id="vertex-2d-mode" class="radio-button">Vert</span><span
                     id="texel-mode" class="radio-button">Tex</span><span
-                    id="pose-2d-mode" class="radio-button">Pose</span>
+                    id="pose-2d-mode" class="radio-button disabled">Pose</span>
             </div>
 
             <canvas id="canvas" width="800" height="800"></canvas>
@@ -55,12 +55,12 @@
             <div id="texture-x">tx: 0</div>
             <div id="texture-y">ty: 0</div>
 
-            <div id="select" class="third-button">Sel</div>
-            <div id="up" class="second-button">Up</div>
+            <div id="select" class="third-button disabled">Sel</div>
+            <div id="up" class="second-button disabled">Up</div>
             <div id="remove" class="first-button">Rem</div>
             
             <div id="grab" class="third-button">Grab</div>
-            <div id="down" class="second-button">Down</div>
+            <div id="down" class="second-button disabled">Down</div>
             <div id="put" class="first-button">Put</div>
 
             <div id="scroll-pad">
@@ -81,7 +81,7 @@
                     <dl>
                         <dt>Grids per 1m</dt>
                         <dd>
-                            <input id="grid" value="7" min="1" max="63" type="number">
+                            <input id="grid" value="7" min="1" max="31" type="number">
                         </dd>
                         <dt>Appry</dt>
                         <dd>

@@ -409,7 +409,12 @@ const Shader = class
                     
                     void main(void)
                     {
-                        outColor = vec4(varColor, 1.0) * texture(sampler, varCoordinate);
+                        vec4 color = vec4(varColor, 1.0) * texture(sampler, varCoordinate);
+                        if(color.a < 0.2)
+                        {
+                            discard;
+                        }
+                        outColor = color;
                     }
                 `
         }
@@ -447,7 +452,12 @@ const Shader = class
                     
                     void main(void)
                     {
-                        outColor = vec4(varColor, 1.0) * texture(sampler, gl_PointCoord);
+                        vec4 color = vec4(varColor, 1.0) * texture(sampler, gl_PointCoord);
+                        if(color.a < 0.2)
+                        {
+                            discard;
+                        }
+                        outColor = color;
                     }
                 `
         }
