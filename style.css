@@ -668,6 +668,12 @@ a:active
     display: none;
 }
 
+/* リスト */
+li
+{
+    padding: 0.5em;
+}
+
 /* タイトル */
 h1
 {

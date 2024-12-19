@@ -4,7 +4,7 @@ import { Matrix, Shader, Model, Renderer } from './renderer.js'
 // モード
 let mode = 
 {
-    name: 'vertex3d',
+    name: 'param3d',
     dimension: 3,
 }
 
@@ -71,31 +71,39 @@ const element =
     grab: document.querySelector('#grab'),
     remove: document.querySelector('#remove'),
     texelColor: document.querySelector('#texel-color'),
+    vertexColor: document.querySelector('#vertex-color'),
+    verticeList: document.querySelector('#vertice-list'),
 }
 
-// 立体オブジェクト
+// オブジェクト本体
 const object =
 {
-    name:
-        new Date()
-            .toLocaleDateString(
-                [],
-                {
-                    year: '2-digit',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                }
-            ).replaceAll(/[\/: ]/g, ''),
-    grid: 7,
+    name: new Date()
+        .toLocaleDateString(
+            [],
+            {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }
+        ).replaceAll(/[\/: ]/g, ''),
+    model:
+    {
+        position: [],
+    },
     texture:
     {
+        coordinate: [],
         width: 16,
         height: 16,
-        data: []
+        data: [],
     },
+    color: [],
+    index: [],
+    nextIndex: 0,
 }
 element.name.value = object.name
 
@@ -135,12 +143,28 @@ const control =
         texX: 0.5 / (object.texture.width / 2),
         texY: 0.5 / (object.texture.height / 2),
     },
+    update:
+    {
+        x: false,
+        y: false,
+        z: false,
+        t: false,
+        rotX: false,
+        rotY: false,
+        texX: false,
+        texY: false,
+    },
+    vertex:
+    {
+        color: [255, 255, 255, 255],
+    },
     texel:
     {
         put: false,
         remove: false,
         color: [0, 0, 0, 255],
-    }
+    },
+    grid: 7,
 }
 
 
@@ -148,6 +172,16 @@ const control =
 const updateCursor = (deltaTime) =>
 {
     const d = deltaTime / 1000
+
+    // 前回の値を対比
+    const x = control.current.x
+    const y = control.current.y
+    const z = control.current.z
+    const t = control.current.t
+    const rotX = control.current.rotX
+    const rotY = control.current.rotY
+    const texX = control.current.texX
+    const texY = control.current.texY
 
     // 位置に速度を加算
     control.current.x += control.delta.x * d
@@ -158,6 +192,8 @@ const updateCursor = (deltaTime) =>
     control.current.rotY += control.delta.rotY * d
     control.current.texX += control.delta.texX * d
     control.current.texY += control.delta.texY * d
+
+    // はじくように移動
     control.goal.x += control.delta.x * d
     control.goal.y += control.delta.y * d
     control.goal.z += control.delta.z * d
@@ -166,6 +202,44 @@ const updateCursor = (deltaTime) =>
     control.goal.rotY += control.delta.rotY * d
     control.goal.texX += control.delta.texX * d
     control.goal.texY += control.delta.texY * d
+
+    // 変化があった
+    if(
+        control.current.x !== x ||
+        control.current.y !== y ||
+        control.current.z !== z
+    )
+    {
+
+    }
+    if(control.current.t !== t)
+    {
+
+    }
+    if(
+        control.current.rotX !== rotX ||
+        control.current.rotY !== rotY
+    )
+    {
+
+    }
+    if(
+        control.current.texX !== texX ||
+        control.current.texY !== texY
+    )
+    {
+
+    }
+
+    // テクスチャの限界
+    if(control.current.texX < 0) control.current.texX = 0
+    if(2 <= control.current.texX) control.current.texX = 1.9999999
+    if(control.current.texY < 0) control.current.texY = 0
+    if(2 <= control.current.texY) control.current.texY = 1.9999999
+    if(control.goal.texX < 0) control.goal.texX = 0
+    if(2 <= control.goal.texX) control.goal.texX = 1.9999999
+    if(control.goal.texY < 0) control.goal.texY = 0
+    if(2 <= control.goal.texY) control.goal.texY = 1.9999999
 
     // 丸める時の挙動
     const div = 1.125
@@ -179,9 +253,9 @@ const updateCursor = (deltaTime) =>
     control.current.texY = (control.current.texY - control.goal.texY) / div + control.goal.texY
 
     // 表示
-    element.positionX.textContent = 'x: ' + Math.floor(control.current.x * object.grid)
-    element.positionY.textContent = 'y: ' + Math.floor(control.current.y * object.grid)
-    element.positionZ.textContent = 'z: ' + Math.floor(control.current.z * object.grid)
+    element.positionX.textContent = 'x: ' + Math.floor(control.current.x * control.grid)
+    element.positionY.textContent = 'y: ' + Math.floor(control.current.y * control.grid)
+    element.positionZ.textContent = 'z: ' + Math.floor(control.current.z * control.grid)
     element.time.textContent = 't: ' + Math.floor(control.current.t)
     element.rotateX.textContent = 'rx: ' + Math.floor(control.current.rotX)
     element.rotateY.textContent = 'ry: ' + Math.floor(control.current.rotY)
@@ -191,26 +265,36 @@ const updateCursor = (deltaTime) =>
 
 // 描画フレームワーク
 const renderer = new Renderer(element.canvas)
-const textureShader = new Shader('texture', renderer)
-const background3dModel = new Model(renderer)
-const background3dMatrix = new Matrix()
-const background2dModel = new Model(renderer)
-const background2dMatrix = new Matrix()
-const spriteShader = new Shader('sprite', renderer)
-const pointModel = new Model(renderer)
-const pointMatrix = new Matrix()
-const originalModel = new Model(renderer)
-const originalMatrix = new Matrix()
-const textureModel = new Model(renderer)
-const textureMatrix = new Matrix()
-const centerModel = new Model(renderer)
+
+const shader = {}
+shader.texture = new Shader('texture', renderer)
+shader.sprite = new Shader('sprite', renderer)
+
+const model = {}
+model.bg3d = new Model(renderer)
+model.bg2d = new Model(renderer)
+model.point3d = new Model(renderer)
+model.point2d = new Model(renderer)
+model.originalPoint = new Model(renderer)
+model.strongPoint = new Model(renderer)
+model.texture = new Model(renderer)
+model.center = new Model(renderer)
+
+const matrix = {}
+matrix.bg3d = new Matrix()
+matrix.bg2d = new Matrix()
+matrix.point3d = new Matrix()
+matrix.point2d = new Matrix()
+matrix.originalPoint = new Matrix()
+matrix.strongPoint = new Matrix()
+matrix.texture = new Matrix()
 
 // テクスチャ初期化
 const initTexture = () =>
 {
     for(let i = 0; i < object.texture.width * object.texture.height * 4; i++)
         object.texture.data[i] = 255
-    textureModel.texture = 
+    model.texture.texture = 
     {
         width: object.texture.width,
         height: object.texture.height,
@@ -226,30 +310,30 @@ const init = () =>
     renderer.clear(0.5, 0.5, 0.5, 1)
 
     // 3d背景の板
-    background3dModel.shader = textureShader
-    background3dModel.position = 
+    model.bg3d.shader = shader.texture
+    model.bg3d.position = 
     [
         -4, -4, 1,
          4, -4, 1,
         -4,  4, 1,
          4,  4, 1,
     ]
-    background3dModel.color = 
+    model.bg3d.color = 
     [
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
     ]
-    const g = object.grid * 8
-    background3dModel.coordinate = 
+    const g = control.grid * 8
+    model.bg3d.coordinate = 
     [
         0, 0,
         g, 0,
         0, g,
         g, g,
     ]
-    background3dModel.index = 
+    model.bg3d.index = 
     [
         0, 1, 2,
         3, 2, 1,
@@ -279,38 +363,38 @@ const init = () =>
                 background3dTextureData[(y * bg3w + x) * 4 + 2] = 0x77
             }
         }
-        background3dModel.texture = 
+        model.bg3d.texture = 
     {
         width: bg3w,
         height: bg3h,
         data: background3dTextureData,
     }
-    background3dModel.matrix = background3dMatrix
+    model.bg3d.matrix = matrix.bg3d
 
     // 2d背景の板
-    background2dModel.shader = textureShader
-    background2dModel.position = 
+    model.bg2d.shader = shader.texture
+    model.bg2d.position = 
     [
         -2, -2, 1,
          2, -2, 1,
         -2,  2, 1,
          2,  2, 1,
     ]
-    background2dModel.color = 
+    model.bg2d.color = 
     [
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
     ]
-    background2dModel.coordinate = 
+    model.bg2d.coordinate = 
     [
          0,  0,
         32,  0,
          0, 32,
         32, 32,
     ]
-    background2dModel.index = 
+    model.bg2d.index = 
     [
         0, 1, 2,
         3, 2, 1,
@@ -335,25 +419,25 @@ const init = () =>
                 background2dTextureData[(y * bgw + x) * 4 + 2] = 0x99
             }
         }
-    background2dModel.texture = 
+    model.bg2d.texture = 
     {
         width: bgw,
         height: bgh,
         data: background2dTextureData,
     }
-    background2dModel.matrix = background2dMatrix
+    model.bg2d.matrix = matrix.bg2d
 
     // 照準の板
-    centerModel.shader = spriteShader
-    centerModel.position = 
+    model.center.shader = shader.sprite
+    model.center.position = 
     [
         0, 0, 0,
     ]
-    centerModel.color = 
+    model.center.color = 
     [
         1, 1, 1,
     ]
-    centerModel.index = 
+    model.center.index = 
     [
         0,
     ]
@@ -384,20 +468,20 @@ const init = () =>
                 centerTextureData[(y * 16 + x) * 4 + 3] = 255
             }
         }
-    centerModel.texture = 
+    model.center.texture = 
     {
         width: 16,
         height: 16,
         data: centerTextureData,
     }
-    centerModel.pointSize = 16
+    model.center.pointSize = 16
 
     
-    // モデルの点群
-    pointModel.shader = spriteShader
-    pointModel.position = []
-    pointModel.color = []
-    pointModel.index = []
+    // 3Dモデルの点群
+    model.point3d.shader = shader.sprite
+    model.point3d.position = []
+    model.point3d.color = []
+    model.point3d.index = []
     // スプライト点を描く
     const pointTextureData = []
     const pw = 16, ph = 16
@@ -410,7 +494,12 @@ const init = () =>
             pointTextureData[(y * pw + x) * 4 + 3] = 0x00
             const a = Math.abs(pw - (x + y))
             const s = Math.abs(x - y)
-            const p = 8
+            const p = 6
+            const q = 8
+            if(a < q && s < q)
+            {
+                pointTextureData[(y * pw + x) * 4 + 3] = 0xFF
+            }
             if(a < p && s < p)
             {
                 pointTextureData[(y * pw + x) * 4 + 0] = 0xFF
@@ -419,18 +508,58 @@ const init = () =>
                 pointTextureData[(y * pw + x) * 4 + 3] = 0xFF
             }
         }
-    pointModel.texture = 
+    model.point3d.texture = 
     {
         width: pw,
         height: ph,
         data: pointTextureData,
     }
-    pointModel.matrix = pointMatrix
-    pointModel.pointSize = 16
+    model.point3d.matrix = matrix.point3d
+    model.point3d.pointSize = 128 / control.grid
+
+    // 2Dモデルの点群
+    model.point2d.shader = shader.sprite
+    model.point2d.position = []
+    model.point2d.color = []
+    model.point2d.index = []
+    // スプライト点を描く
+    const point2dTextureData = []
+    const p2w = 16, p2h = 16
+    for(let y = 0; y < p2w; y++)
+        for(let x = 0; x < p2h; x++)
+        {
+            point2dTextureData[(y * p2w + x) * 4 + 0] = 0x00
+            point2dTextureData[(y * p2w + x) * 4 + 1] = 0x00
+            point2dTextureData[(y * p2w + x) * 4 + 2] = 0x00
+            point2dTextureData[(y * p2w + x) * 4 + 3] = 0x00
+            const a = Math.abs(p2w - (x + y))
+            const s = Math.abs(x - y)
+            const p = 6
+            const q = 8
+            if(a < q && s < q)
+            {
+                point2dTextureData[(y * p2w + x) * 4 + 3] = 0xFF
+            }
+            if(a < p && s < p)
+            {
+                point2dTextureData[(y * p2w + x) * 4 + 0] = 0xFF
+                point2dTextureData[(y * p2w + x) * 4 + 1] = 0xFF
+                point2dTextureData[(y * p2w + x) * 4 + 2] = 0xFF
+                point2dTextureData[(y * p2w + x) * 4 + 3] = 0xFF
+            }
+        }
+    model.point2d.texture = 
+    {
+        width: p2w,
+        height: p2h,
+        data: point2dTextureData,
+    }
+    model.point2d.matrix = matrix.point2d
+    model.point2d.pointSize = 128 / control.grid
 
     // 強調する点のモデル
-    originalModel.shader = spriteShader
-    originalModel.position = [
+    model.strongPoint.shader = shader.sprite
+    model.strongPoint.position = [
         -2, -2, 0,
         -1, -2, 0,
          0, -2, 0,
@@ -445,7 +574,6 @@ const init = () =>
 
         -2, 0, 0,
         -1, 0, 0,
-        0, 0, 0,
         1, 0, 0,
          2, 0, 0,
          
@@ -461,7 +589,7 @@ const init = () =>
         1, 2, 0,
         2, 2, 0,
     ]
-    originalModel.color = [
+    model.strongPoint.color = [
         0.4, 0.4, 0.4,
         0.4, 0.4, 0.4,
         0.4, 0.4, 0.4,
@@ -476,7 +604,6 @@ const init = () =>
         
         0.4, 0.4, 0.4,
         0.4, 0.4, 0.4,
-        0.2, 0.2, 0.2,
         0.4, 0.4, 0.4,
         0.4, 0.4, 0.4,
         
@@ -492,73 +619,107 @@ const init = () =>
         0.4, 0.4, 0.4,
         0.4, 0.4, 0.4,
     ]
-    originalModel.index =
+    model.strongPoint.index =
     [
         0, 1, 2, 3, 4,
         5, 6, 7, 8, 9,
-        10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24,
+        10, 11, 12, 13,
+        14, 15, 16, 17, 18,
+        19, 20, 21, 22, 23,
     ]
     // 強調する点を描く
-    const originalTextureData = []
-    const ow = 64, oh = 64
+    const strongPointTextureData = []
+    const sw = 8, sh = 8
+    for(let y = 0; y < sw; y++)
+        for(let x = 0; x < sh; x++)
+        {
+            strongPointTextureData[(y * sw + x) * 4 + 0] = 0
+            strongPointTextureData[(y * sw + x) * 4 + 1] = 0
+            strongPointTextureData[(y * sw + x) * 4 + 2] = 0
+            strongPointTextureData[(y * sw + x) * 4 + 3] = 0
+            if(
+                (x === sw / 2 || x ===  sw / 2 - 1) ||
+                (y === sh / 2 || y === sh / 2 - 1)
+            )
+            {
+                strongPointTextureData[(y * sw + x) * 4 + 0] = 0xFF
+                strongPointTextureData[(y * sw + x) * 4 + 1] = 0xFF
+                strongPointTextureData[(y * sw + x) * 4 + 2] = 0xFF
+                strongPointTextureData[(y * sw + x) * 4 + 3] = 0xFF
+            }
+        }
+    model.strongPoint.texture = 
+    {
+        width: sw,
+        height: sh,
+        data: strongPointTextureData,
+    }
+    model.strongPoint.matrix = matrix.strongPoint
+    model.strongPoint.pointSize = 128 / control.grid
+
+    // 原点のモデル
+    model.originalPoint.shader = shader.sprite
+    model.originalPoint.position = [ 0, 0, 0, ]
+    model.originalPoint.color = [ 0.4, 0.4, 0.4, ]
+    model.originalPoint.index = [ 0 ]
+    const originalPointTextureData = []
+    const ow = 16, oh = 16
     for(let y = 0; y < ow; y++)
         for(let x = 0; x < oh; x++)
         {
-            originalTextureData[(y * ow + x) * 4 + 0] = 0x00
-            originalTextureData[(y * ow + x) * 4 + 1] = 0x00
-            originalTextureData[(y * ow + x) * 4 + 2] = 0x00
-            originalTextureData[(y * ow + x) * 4 + 3] = 0x00
-            const a = Math.abs(ow - (x + y))
-            const s = Math.abs(x - y)
-            const p = ow / 2
-            if(a < p && s < p)
+            originalPointTextureData[(y * ow + x) * 4 + 0] = 0x00
+            originalPointTextureData[(y * ow + x) * 4 + 1] = 0x00
+            originalPointTextureData[(y * ow + x) * 4 + 2] = 0x00
+            originalPointTextureData[(y * ow + x) * 4 + 3] = 0x00
+            if(
+                (x === ow / 2 || x ===  ow / 2 - 1) ||
+                (y === oh / 2 || y === oh / 2 - 1)
+            )
             {
-                originalTextureData[(y * ow + x) * 4 + 0] = 0xFF
-                originalTextureData[(y * ow + x) * 4 + 1] = 0xFF
-                originalTextureData[(y * ow + x) * 4 + 2] = 0xFF
-                originalTextureData[(y * ow + x) * 4 + 3] = 0xFF
+                originalPointTextureData[(y * ow + x) * 4 + 0] = 0xFF
+                originalPointTextureData[(y * ow + x) * 4 + 1] = 0xFF
+                originalPointTextureData[(y * ow + x) * 4 + 2] = 0xFF
+                originalPointTextureData[(y * ow + x) * 4 + 3] = 0xFF
             }
         }
-    originalModel.texture = 
+    model.originalPoint.texture = 
     {
         width: ow,
         height: oh,
-        data: originalTextureData,
+        data: originalPointTextureData,
     }
-    originalModel.matrix = originalMatrix
-    originalModel.pointSize = 128 / object.grid
+    model.originalPoint.matrix = matrix.originalPoint
+    model.originalPoint.pointSize = 256 / control.grid
 
     // テクスチャ表示用の板
-    textureModel.shader = textureShader
-    textureModel.position = 
+    model.texture.shader = shader.texture
+    model.texture.position = 
     [
          0, 0, 0,
          2, 0, 0,
          0, 2, 0,
          2, 2, 0,
     ]
-    textureModel.color = 
+    model.texture.color = 
     [
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
     ]
-    textureModel.coordinate = 
+    model.texture.coordinate = 
     [
         0, 0,
         1, 0,
         0, 1,
         1, 1,
     ]
-    textureModel.index = 
+    model.texture.index = 
     [
         0, 1, 2,
         3, 2, 1,
     ]
-    textureModel.matrix = textureMatrix
+    model.texture.matrix = matrix.texture
     initTexture()
 }
 init()
@@ -583,7 +744,7 @@ const drawTexel = () =>
     object.texture.data[(y * w + x) * 4 + 1] = c[1]
     object.texture.data[(y * w + x) * 4 + 2] = c[2]
     object.texture.data[(y * w + x) * 4 + 3] = c[3]
-    textureModel.texture = 
+    model.texture.texture = 
     {
         width: object.texture.width,
         height: object.texture.height,
@@ -596,6 +757,42 @@ const halfRound = (x, a) =>
 {
     const h = (a / 2)
     return Math.floor(x * h) / h
+}
+
+// モデルの中身を更新
+const updateModel = () =>
+{
+    const position3d = []
+    const color = []
+    const position2d = []
+    const index = []
+
+    // 各頂点に行う
+    for(let i = 0; i < object.model.position.length / 3; i++)
+    {
+        // 点モデル3D
+        position3d[i * 3 + 0] = object.model.position[i * 3 + 0]
+        position3d[i * 3 + 1] = object.model.position[i * 3 + 1]
+        position3d[i * 3 + 2] = object.model.position[i * 3 + 2]
+
+        // 点モデル2D
+        position2d[i * 3 + 0] = object.texture.coordinate[i * 2 + 0]
+        position2d[i * 3 + 1] = object.texture.coordinate[i * 2 + 1]
+        position2d[i * 3 + 2] = 0
+
+        // 共通
+        color[i * 3 + 0] = object.color[i * 3 + 0]
+        color[i * 3 + 1] = object.color[i * 3 + 1]
+        color[i * 3 + 2] = object.color[i * 3 + 2]
+        index[i] = i
+    }
+
+    model.point3d.position = position3d
+    model.point3d.color = color
+    model.point3d.index = index
+    model.point2d.position = position2d
+    model.point2d.color = color
+    model.point2d.index = index
 }
 
 // アニメーションフレーム
@@ -630,16 +827,28 @@ const animationFrame = (timestamp) =>
         let cy = control.current.y
         while(2 < cy) cy -= 2
         while(cy < -2) cy += 2
-        background3dMatrix.initialize()
-        background3dMatrix.translateX(halfRound(-cx, cvw))
-        background3dMatrix.translateY(halfRound(-cy, cvh))
-        background3dModel.drawTriangles()
+        matrix.bg3d.initialize()
+        matrix.bg3d.translateX(halfRound(-cx, cvw))
+        matrix.bg3d.translateY(halfRound(-cy, cvh))
+        model.bg3d.drawTriangles()
 
         // 原点などを描く
-        originalMatrix.initialize()
-        originalMatrix.translateX(halfRound(-control.current.x, cvw))
-        originalMatrix.translateY(halfRound(-control.current.y, cvh))
-        originalModel.drawPoints()
+        matrix.originalPoint.initialize()
+        matrix.originalPoint.translateX(halfRound(-cx, cvw))
+        matrix.originalPoint.translateY(halfRound(-cy, cvh))
+        model.originalPoint.drawPoints()
+
+        // 強調する点を描く
+        matrix.strongPoint.initialize()
+        matrix.strongPoint.translateX(halfRound(-cx, cvw))
+        matrix.strongPoint.translateY(halfRound(-cy, cvh))
+        model.strongPoint.drawPoints()
+
+        // 点モデルを描く
+        matrix.point3d.initialize()
+        matrix.point3d.translateX(halfRound(-cx, cvw))
+        matrix.point3d.translateY(halfRound(-cy, cvh))
+        model.point3d.drawPoints()
     }
 
     // 2D表示
@@ -652,32 +861,26 @@ const animationFrame = (timestamp) =>
         let cy = control.current.texY
         while(1 < cy) cy--
         while(cy < -1) cy++
-        background2dMatrix.initialize()
-        background2dMatrix.translateX(halfRound(-cx, cvw))
-        background2dMatrix.translateY(halfRound(-cy, cvh))
-        background2dModel.drawTriangles()
-
-        // 原点などを描く
-        originalMatrix.initialize()
-        originalMatrix.translateX(halfRound(-control.current.texX, cvw))
-        originalMatrix.translateY(halfRound(-control.current.texY, cvh))
-        originalModel.drawPoints()
+        matrix.bg2d.initialize()
+        matrix.bg2d.translateX(halfRound(-cx, cvw))
+        matrix.bg2d.translateY(halfRound(-cy, cvh))
+        model.bg2d.drawTriangles()
 
         // テクスチャ板
-        textureMatrix.initialize()
-        textureMatrix.translateX(halfRound(-control.current.texX, cvw))
-        textureMatrix.translateY(halfRound(-control.current.texY, cvh))
-        textureModel.drawTriangles()
+        matrix.texture.initialize()
+        matrix.texture.translateX(halfRound(-cx, cvw))
+        matrix.texture.translateY(halfRound(-cy, cvh))
+        model.texture.drawTriangles()
+
+        // 点モデルを描く
+        matrix.point2d.initialize()
+        matrix.point2d.translateX(halfRound(-cx, cvw))
+        matrix.point2d.translateY(halfRound(-cy, cvh))
+        model.point2d.drawPoints()
     }
 
-    // 点群を描く
-    pointMatrix.initialize()
-    pointMatrix.translateX(halfRound(-control.current.x, cvw))
-    pointMatrix.translateY(halfRound(-control.current.y, cvh))
-    pointModel.drawPoints()
-
     // 真ん中の照準を描く
-    centerModel.drawPoints()
+    model.center.drawPoints()
 
     // 全描画
     renderer.render()
@@ -717,9 +920,9 @@ const callback =
         e.stopPropagation()
         e.preventDefault()
 
-        const g = object.grid = element.grid.value
+        const g = control.grid = element.grid.value
         
-        background3dModel.coordinate = 
+        model.bg3d.coordinate = 
         [
             0,  0,
             g * 8,  0,
@@ -735,7 +938,8 @@ const callback =
         control.goal.rotX = 0
         control.goal.rotY = 0
 
-        originalModel.pointSize = 128 / g
+        model.strongPoint.pointSize = 128 / g
+        model.originalPoint.pointSize = 256 / control.grid
     },
     apply2d: (e) =>
     {
@@ -1022,8 +1226,8 @@ const callback =
         {
             control.delta.x = 0
             control.delta.y = 0
-            const w = object.grid
-            const h = object.grid
+            const w = control.grid
+            const h = control.grid
             control.goal.x = Math.round(control.current.x * w) / w
             control.goal.y = Math.round(control.current.y * h) / h
         }
@@ -1071,6 +1275,48 @@ const callback =
     },
     put: (e) =>
     {
+        // 頂点置き3D
+        if(mode.name === 'vertex3d')
+        {
+            const n = object.nextIndex++
+
+            object.model.position[n * 3 + 0] = control.current.x
+            object.model.position[n * 3 + 1] = control.current.y
+            object.model.position[n * 3 + 2] = control.current.z
+            object.model.color[n * 3 + 0] = control.vertex.color[0]
+            object.model.color[n * 3 + 1] = control.vertex.color[1]
+            object.model.color[n * 3 + 2] = control.vertex.color[2]
+            object.texture.coordinate[n * 2 + 0] = control.current.texX
+            object.texture.coordinate[n * 2 + 1] = control.current.texY
+            //object.index[n] = n
+
+            updateModel()
+
+            const li = document.createElement('li')
+            li.textContent = n
+            element.verticeList.append(li)
+        }
+        // 頂点置き2D
+        if(mode.name === 'vertex2d')
+        {
+            const n = object.nextIndex++
+
+            object.model.position[n * 3 + 0] = control.current.x
+            object.model.position[n * 3 + 1] = control.current.y
+            object.model.position[n * 3 + 2] = control.current.z
+            object.model.color[n * 3 + 0] = control.vertex.color[0]
+            object.model.color[n * 3 + 1] = control.vertex.color[1]
+            object.model.color[n * 3 + 2] = control.vertex.color[2]
+            object.texture.coordinate[n * 2 + 0] = control.current.texX
+            object.texture.coordinate[n * 2 + 1] = control.current.texY
+            //object.index[n] = n
+
+            updateModel()
+
+            const li = document.createElement('li')
+            li.textContent = n
+            element.verticeList.append(li)
+        }
         // テクセル描き
         if(mode.name === 'texel')
         {
@@ -1084,6 +1330,59 @@ const callback =
     },
     remove: (e) =>
     {
+        // 頂点消し3D
+        if(mode.name === 'vertex3d')
+        {
+            element.verticeList.textContent = ''
+
+            const s = 1 / control.grid / 2
+            for(let n = 0; n < object.model.position.length / 3; n++)
+            {
+                // グリッド範囲内の頂点を消す
+                if(
+                    object.model.position[n * 3 + 0] > control.current.x - s &&
+                    object.model.position[n * 3 + 0] < control.current.x + s &&
+                    object.model.position[n * 3 + 1] > control.current.y - s &&
+                    object.model.position[n * 3 + 1] < control.current.y + s &&
+                    object.model.position[n * 3 + 2] > control.current.z - s &&
+                    object.model.position[n * 3 + 2] < control.current.z + s
+                )
+                {
+                    object.model.position.splice(n * 3, 3)
+                    object.model.color.splice(n * 3, 3)
+                    object.texture.coordinate.splice(n * 2, 2)
+                }
+            }
+            updateModel()
+
+            element.verticeList.textContent = ''
+        }
+        // 頂点消し
+        if(mode.name === 'vertex2d')
+        {
+            element.verticeList.textContent = ''
+
+            const sw = 1 / object.texture.width / 2
+            const sh = 1 / object.texture.height / 2
+            for(let n = 0; n < object.model.position.length / 3; n++)
+            {
+                // グリッド範囲内の頂点を消す
+                if(
+                    object.texture.coordinate[n * 3 + 0] > control.current.texX - sw &&
+                    object.texture.coordinate[n * 3 + 0] < control.current.texX + sw &&
+                    object.texture.coordinate[n * 3 + 1] > control.current.texY - sh &&
+                    object.texture.coordinate[n * 3 + 1] < control.current.texY + sh
+                )
+                {
+                    object.model.position.splice(n * 3, 3)
+                    object.model.color.splice(n * 3, 3)
+                    object.texture.coordinate.splice(n * 2, 2)
+                }
+            }
+            updateModel()
+
+            element.verticeList.textContent = ''
+        }
         // テクセル消し
         if(mode.name === 'texel')
         {
@@ -1094,6 +1393,18 @@ const callback =
             else removeClass(element.remove, 'selected')
             removeClass(element.put, 'selected')
         }
+    },
+    vertexColor: (e) =>
+    {
+        const v = element.vertexColor.value
+        const r = v.substring(1, 3)
+        const g = v.substring(3, 5)
+        const b = v.substring(5, 7)
+
+        control.vertex.color[0] = parseInt(r, 16)
+        control.vertex.color[1] = parseInt(g, 16)
+        control.vertex.color[2] = parseInt(b, 16)
+        control.vertex.color[3] = 255
     },
     texelColor: (e) =>
     {
@@ -1258,7 +1569,8 @@ element.rotate.addEventListener('touchcancel', callback.releasePad)
 // ボタンを押した時のイベント
 element.put.addEventListener('pointerdown', callback.put)
 element.remove.addEventListener('pointerdown', callback.remove)
-// ボタンを押した時のイベント
+// 色選択をした時のイベント
+element.vertexColor.addEventListener('change', callback.vertexColor)
 element.texelColor.addEventListener('change', callback.texelColor)
 // 座標の表示を押した時のイベント
 element.positionX.addEventListener('pointerdown', callback.positionReset)
