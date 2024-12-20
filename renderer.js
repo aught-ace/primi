@@ -410,7 +410,7 @@ const Shader = class
                     void main(void)
                     {
                         vec4 color = vec4(varColor, 1.0) * texture(sampler, varCoordinate);
-                        if(color.a < 0.2)
+                        if(color.a < 0.125)
                         {
                             discard;
                         }

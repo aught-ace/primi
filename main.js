@@ -8,10 +8,14 @@ let mode =
     dimension: 3,
 }
 
+// ストレージのデータリストの名前
+const dataListName = 'data-list'
+
 // 要素
 const element =
 {
     canvas: document.querySelector('#canvas'),
+    update: document.querySelector('#update'),
     param3dDiv: document.querySelector('#param-3d-div'),
     param2dDiv: document.querySelector('#param-2d-div'),
     param3dForm: document.querySelector('#param-3d-form'),
@@ -46,10 +50,8 @@ const element =
     pose3dDiv: document.querySelector('#pose-3d-div'),
     pose2dDiv: document.querySelector('#pose-2d-div'),
     texelDiv: document.querySelector('#texel-div'),
-    saveForm: document.querySelector('#save-form'),
     import: document.querySelector('#import'),
     export: document.querySelector('#export'),
-    newButton: document.querySelector('#new'),
     scrollPad: document.querySelector('#scroll-pad'),
     rotatePad: document.querySelector('#rotate-pad'),
     scroll: document.querySelector('#scroll'),
@@ -68,12 +70,22 @@ const element =
     put: document.querySelector('#put'),
     up: document.querySelector('#up'),
     down: document.querySelector('#down'),
-    select: document.querySelector('#select'),
+    all: document.querySelector('#all'),
     grab: document.querySelector('#grab'),
     remove: document.querySelector('#remove'),
     texelColor: document.querySelector('#texel-color'),
     vertexColor: document.querySelector('#vertex-color'),
-    verticeList: document.querySelector('#vertice-list'),
+    vertexList: document.querySelector('#vertex-list'),
+    surfaceList: document.querySelector('#surface-list'),
+    vertexListSurface: document.querySelector('#vertex-list-surface'),
+    strageDiv: document.querySelector('#strage-div'),
+    strageList: document.querySelector('#strage-list'),
+    loadButton: document.querySelector('#load-button'),
+    deleteButton: document.querySelector('#delete-button'),
+    cancelButton: document.querySelector('#cancel-button'),
+    saveButton: document.querySelector('#save-button'),
+    openStrage: document.querySelector('#open-strage'),
+    nameStrage: document.querySelector('#name-strage'),
 }
 
 // 操作オブジェクト
@@ -119,13 +131,13 @@ const updateCursor = (deltaTime) =>
 
     // テクスチャの限界
     if(control.current.texX < 0) control.current.texX = 0
-    if(2 <= control.current.texX) control.current.texX = 1.9999999
+    if(1 <= control.current.texX) control.current.texX = 0.9999999
     if(control.current.texY < 0) control.current.texY = 0
-    if(2 <= control.current.texY) control.current.texY = 1.9999999
+    if(1 <= control.current.texY) control.current.texY = 0.9999999
     if(control.goal.texX < 0) control.goal.texX = 0
-    if(2 <= control.goal.texX) control.goal.texX = 1.9999999
+    if(1 <= control.goal.texX) control.goal.texX = 0.9999999
     if(control.goal.texY < 0) control.goal.texY = 0
-    if(2 <= control.goal.texY) control.goal.texY = 1.9999999
+    if(1 <= control.goal.texY) control.goal.texY = 0.9999999
 
     // X軸回転の限界
     if(control.current.rotX < -1) control.current.rotX = -1
@@ -145,7 +157,7 @@ const updateCursor = (deltaTime) =>
     control.current.texY = (control.current.texY - control.goal.texY) / div + control.goal.texY
     control.current.scale = (control.current.scale - control.goal.scale) / div + control.goal.scale
     // 十分近づいたら同じ値にしてしまう
-    const e = 0.03125
+    const e = 1 / 256
     if(Math.abs(control.current.x - control.goal.x) < e) control.current.x  = control.goal.x
     if(Math.abs(control.current.y - control.goal.y) < e) control.current.y  = control.goal.y
     if(Math.abs(control.current.z - control.goal.z) < e) control.current.z  = control.goal.z
@@ -156,36 +168,16 @@ const updateCursor = (deltaTime) =>
     if(Math.abs(control.current.texY - control.goal.texY) < e) control.current.texY  = control.goal.texY
     if(Math.abs(control.current.scale - control.goal.scale) < e) control.current.scale  = control.goal.scale
 
-    // 照準位置に変化があった
-    const g = control.grid * 2
-    if(
-        Math.round(control.current.x * g) !== Math.round(x * g) ||
-        Math.round(control.current.y * g) !== Math.round(y * g) ||
-        Math.round(control.current.z * g) !== Math.round(z * g)
-    )
-    {
-        if(mode.name === 'vertex3d')
-            updateVertexList()
-        if(!control.vertex.grab) control.vertex.selected = -1
-    }
-    const tw = object.texture.width * 2
-    const th = object.texture.height * 2
-    if(
-        Math.floor(control.current.texX * tw) !== Math.floor(texX * tw) ||
-        Math.floor(control.current.texY * th) !== Math.floor(texY * th)
-    )
-    {
-        if(mode.name === 'vertex2d')
-            updateVertexList()
-        if(!control.vertex.grab) control.vertex.selected = -1
-    }
-
     // つかんだ頂点の位置を変化させる
     if(control.vertex.grab)
     {
-        if(mode.name === 'vertex3d')
+        if(
+            mode.name === 'vertex3d' ||
+            mode.name === 'surface'
+        )
         {
-            if(control.vertex.selected === -1)
+            // 選択していなければ全て
+            if(!control.selectedList.length)
             {
                 for(let i = 0; i < object.vertexCount; i++)
                 {
@@ -194,31 +186,78 @@ const updateCursor = (deltaTime) =>
                     object.position[i * 3 + 2] += control.current.z - z
                 }
             }
+            // 選択していればそれら
             else
             {
-                const i = control.vertex.selected
-                object.position[i * 3 + 0] += control.current.x - x
-                object.position[i * 3 + 1] += control.current.y - y
-                object.position[i * 3 + 2] += control.current.z - z
+                for(let n = 0; n < control.selectedList.length; n++)
+                {
+                    const i = control.selectedList[n]
+                    object.position[i * 3 + 0] += control.current.x - x
+                    object.position[i * 3 + 1] += control.current.y - y
+                    object.position[i * 3 + 2] += control.current.z - z
+                }
             }
+        // 2D
         } else if(mode.name === 'vertex2d')
         {
-            if(control.vertex.selected === -1)
+            if(!control.vertex.selected.length)
             {
                 for(let i = 0; i < object.vertexCount; i++)
                 {
-                    object.coordinate[i * 2 + 0] += control.current.texX - texX
-                    object.coordinate[i * 2 + 1] += control.current.texY - texY
+                    object.coordinate[i * 2 + 0] += (control.current.texX - texX)
+                    object.coordinate[i * 2 + 1] += (control.current.texY - texY)
                 }
             }
             else
             {
-                const i = control.vertex.selected
-                object.coordinate[i * 2 + 0] += control.current.texX - texX
-                object.coordinate[i * 2 + 1] += control.current.texY - texY
+                for(let n = 0; n < control.vertex.selected.length; n++)
+                {
+                    const i = control.vertex.selected[n]
+                    object.coordinate[i * 2 + 0] += (control.current.texX - texX)
+                    object.coordinate[i * 2 + 1] += (control.current.texY - texY)
+                }
             }
         }
-        updateModel()
+
+        if(
+            control.current.x !== x ||
+            control.current.y !== y ||
+            control.current.z !== z ||
+            control.current.texX !== texX ||
+            control.current.texY !== texY
+        )
+            updateModel()
+    }
+
+    // 照準の位置に変化があった
+    const g = control.grid * 2
+    const tw = object.texture.width * 2
+    const th = object.texture.height * 2
+    if(
+        Math.round(control.current.x * g) !== Math.round(x * g) ||
+        Math.round(control.current.y * g) !== Math.round(y * g) ||
+        Math.round(control.current.z * g) !== Math.round(z * g)
+    )
+    {
+        // 頂点リスト更新
+        if(
+            mode.name === 'vertex3d' ||
+            mode.name === 'surface'
+        ) updateVertexList()
+
+        // 面リスト更新
+        if(mode.name === 'surface') updateSurfaceList()
+    }
+    if(
+        Math.round(control.current.texX * tw) !== Math.round(texX * tw) ||
+        Math.round(control.current.texY * th) !== Math.round(texY * th)
+    )
+    {
+        // 頂点リスト更新
+        if(mode.name === 'vertex2d') updateVertexList()
+
+        // テクセル描き
+        if(mode.name === 'texel') putTexel()
     }
 
     // 表示
@@ -228,8 +267,8 @@ const updateCursor = (deltaTime) =>
     element.time.textContent = 't: ' + Math.round(control.current.t)
     element.rotateX.textContent = 'rx: ' + Math.round(control.current.rotX)
     element.rotateY.textContent = 'ry: ' + Math.round(control.current.rotY)
-    element.textureX.textContent = 'tx: ' + Math.floor(control.current.texX * object.texture.width / 2)
-    element.textureY.textContent = 'ty: ' + Math.floor(control.current.texY * object.texture.height / 2)
+    element.textureX.textContent = 'tx: ' + Math.floor(control.current.texX * object.texture.width)
+    element.textureY.textContent = 'ty: ' + Math.floor(control.current.texY * object.texture.height)
 }
 
 // 描画フレームワーク
@@ -248,6 +287,7 @@ model.originalPoint = new Model(renderer)
 model.strongPoint = new Model(renderer)
 model.texture = new Model(renderer)
 model.center = new Model(renderer)
+model.object = new Model(renderer)
 
 const matrix = {}
 matrix.bg3d = new Matrix()
@@ -258,6 +298,7 @@ matrix.originalPoint = new Matrix()
 matrix.strongPoint = new Matrix()
 matrix.texture = new Matrix()
 matrix.center = new Matrix()
+matrix.object = new Matrix()
 
 // クラス追加
 const addClass = (element, className) =>
@@ -270,12 +311,94 @@ const removeClass = (element, className) =>
     if(element.classList.contains(className)) element.classList.remove(className)
 }
 
+// テクセル描き状態などの終了
+const resetState = () =>
+{
+    control.vertex.grab = false
+    control.texel.remove = false
+    control.texel.put = false
+    removeClass(element.grab, 'selected')
+    removeClass(element.remove, 'selected')
+    removeClass(element.put, 'selected')
+}
+    
+
+// 面リスト更新
+const updateSurfaceList = () =>
+{
+    element.surfaceList.innerHTML = ''
+
+    const s = 1 / control.grid / 2
+
+    // グリッド範囲内の頂点を列挙
+    const vl = []
+    for(let n = 0; n < object.vertexCount; n++)
+    {
+        const r = 
+            object.position[n * 3 + 0] > control.current.x - s &&
+            object.position[n * 3 + 0] < control.current.x + s &&
+            object.position[n * 3 + 1] > control.current.y - s &&
+            object.position[n * 3 + 1] < control.current.y + s &&
+            object.position[n * 3 + 2] > control.current.z - s &&
+            object.position[n * 3 + 2] < control.current.z + s 
+        if(r) vl.push(n)
+    }
+    // 列挙した頂点を含む三角形を列挙
+    const i = object.index
+    const sl = []
+    for(let n = 0; n < vl.length; n++)
+        for(let m = 0; m < i.length; m++)
+            if(i[m] === vl[n]) sl.push(Math.floor(m / 3))
+                
+    for(let n = 0; n < sl.length; n++)
+    {
+        const s = sl[n]
+        /*
+        const i0 = i[s * 3 + 0]
+        const i1 = i[s * 3 + 1]
+        const i2 = i[s * 3 + 2]
+        */
+        const li = document.createElement('li')
+        li.textContent = n
+        addClass(li, 'surface')
+        for(let j = 0; j < control.surface.selected.length; j++)
+        {
+            if(control.surface.selected[j] === n) addClass(li, 'selected')
+        }
+        li.addEventListener('pointerdown', callback.selectSurface)
+        element.surfaceList.append(li)
+    }
+}
+
+// 選択した頂点と面を全て集める
+const updateSelectedList = () =>
+{
+    control.selectedList = []
+    const s = {}
+    for(let v of control.vertex.selected)
+    {
+        control.selectedList.push(v)
+        s[v] = true
+    }
+    for(let v of control.surface.selected)
+    {
+        const i0 = object.index[v * 3 + 0]
+        const i1 = object.index[v * 3 + 1]
+        const i2 = object.index[v * 3 + 2]
+        if(!s[i0]) control.selectedList.push(i0)
+        s[i0] = true
+        if(!s[i1]) control.selectedList.push(i1)
+        s[i1] = true
+        if(!s[i2]) control.selectedList.push(i2)
+        s[i2] = true
+    }
+}
 
 // 頂点リスト更新
 const updateVertexList = () =>
 {
-    control.vertex.elementList = []
-    element.verticeList.innerHTML = ''
+    element.vertexList.innerHTML = ''
+    element.vertexListSurface.innerHTML = ''
 
     const s = 1 / control.grid / 2
     const sw = 1 / object.texture.width / 2
@@ -292,20 +415,35 @@ const updateVertexList = () =>
             object.position[n * 3 + 2] > control.current.z - s &&
             object.position[n * 3 + 2] < control.current.z + s ||
             mode.dimension === 2 &&
-            object.coordinate[n * 2 + 0] > control.current.texX - sw &&
-            object.coordinate[n * 2 + 0] < control.current.texX + sw &&
-            object.coordinate[n * 2 + 1] > control.current.texY - sh &&
-            object.coordinate[n * 2 + 1] < control.current.texY + sh
+            object.coordinate[n * 2 + 0] > control.current.texX * 2 - sw &&
+            object.coordinate[n * 2 + 0] < control.current.texX * 2 + sw &&
+            object.coordinate[n * 2 + 1] > control.current.texY * 2 - sh &&
+            object.coordinate[n * 2 + 1] < control.current.texY * 2 + sh
         if(r)
         {
             const li = document.createElement('li')
             li.textContent = n
             addClass(li, 'vertex')
-            if(n == control.vertex.selected) addClass(li, 'selected')
+            for(let i = 0; i < control.vertex.selected.length; i++)
+            {
+                if(control.vertex.selected[i] === n) addClass(li, 'selected')
+            }
             li.addEventListener('pointerdown', callback.selectVertex)
-            element.verticeList.append(li)
-            control.vertex.elementList.push(li)
+            element.vertexList.append(li)
+
+            const lic = li.cloneNode()
+            lic.textContent = n
+            lic.addEventListener('pointerdown', callback.selectVertex)
+            element.vertexListSurface.append(lic)
         }
+    }
+
+    if(mode.name !== 'surface')
+    {
+        if(object.vertexCount && control.vertex.selected.length === object.vertexCount)
+            addClass(element.all, 'selected')
+        else
+            removeClass(element.all, 'selected')
     }
 }
 
@@ -315,6 +453,12 @@ const initTexture = () =>
     for(let i = 0; i < object.texture.width * object.texture.height * 4; i++)
         object.texture.data[i] = 255
     model.texture.texture = 
+    {
+        width: object.texture.width,
+        height: object.texture.height,
+        data: object.texture.data,
+    }
+    model.object.texture = 
     {
         width: object.texture.width,
         height: object.texture.height,
@@ -402,10 +546,13 @@ const init = () =>
         },
         vertex:
         {
-            selected: -1,
-            elementList: [],
+            selected: [],
             color: [1, 1, 1, 1],
             grab: false,
+        },
+        surface:
+        {
+            selected: [],
         },
         texel:
         {
@@ -413,7 +560,11 @@ const init = () =>
             remove: false,
             color: [0, 0, 0, 255],
         },
+        selectedList: [],
         grid: 7,
+        strage: {
+            selected: '',
+        },
     }
 
     // 3Dモデルのオブジェクト
@@ -444,13 +595,10 @@ const init = () =>
         },
     }
     element.name.value = object.name
+    element.nameStrage.value = object.name
 
-    // テクセル描き状態などのオフ
-    control.vertex.grab = false
-    control.texel.remove = false
-    control.texel.put = false
-    removeClass(element.remove, 'selected')
-    removeClass(element.put, 'selected')
+    // テクセル置きなどの状態をリセット
+    resetState()
 
     // 頂点リスト更新
     updateVertexList()
@@ -469,7 +617,7 @@ const init = () =>
         -4,  4, 1,
          4,  4, 1,
     ]
-    model.bg3d.color = 
+    model.bg3d.color =
     [
         1, 1, 1,
         1, 1, 1,
@@ -548,17 +696,17 @@ const init = () =>
     ]
     // 四角を描く
     const background2dTextureData = []
-    const bgw = 16, bgh = 16
+    const bgw = 32, bgh = 32
     for(let y = 0; y < bgw; y++)
         for(let x = 0; x < bgh; x++)
         {
-            background2dTextureData[(y * bgw + x) * 4 + 0] = 0x66
-            background2dTextureData[(y * bgw + x) * 4 + 1] = 0x66
-            background2dTextureData[(y * bgw + x) * 4 + 2] = 0x66
-            background2dTextureData[(y * bgw + x) * 4 + 3] = 0x22
+            background2dTextureData[(y * bgw + x) * 4 + 0] = 0x00
+            background2dTextureData[(y * bgw + x) * 4 + 1] = 0x00
+            background2dTextureData[(y * bgw + x) * 4 + 2] = 0x00
+            background2dTextureData[(y * bgw + x) * 4 + 3] = 0x33
             const xw = x - bgw / 2
             const yh = y - bgh / 2
-            const p = 7
+            const p = bgw / 2 - 1
             if(-p <= xw && xw < p && -p <= yh && yh < p)
             {
                 background2dTextureData[(y * bgw + x) * 4 + 3] = 0x00
@@ -639,12 +787,14 @@ const init = () =>
             pointTextureData[(y * pw + x) * 4 + 2] = 0x00
             pointTextureData[(y * pw + x) * 4 + 3] = 0x00
             const r = (x - pw / 2) * (x - pw / 2) + (y - ph / 2) * (y - ph / 2)
-            const p = 32 * 32
-            const q = 28 * 28
+            const p = (pw / 2) * (pw / 2)
+            const q = (pw / 2 - 4) * (pw / 2 - 4)
+            /*
             if(r <= p)
             {
                 pointTextureData[(y * pw + x) * 4 + 3] = 0xFF
             }
+            */
             if(r <= q)
             {
                 pointTextureData[(y * pw + x) * 4 + 0] = 0xFF
@@ -660,7 +810,7 @@ const init = () =>
         data: pointTextureData,
     }
     model.point3d.matrix = matrix.point3d
-    model.point3d.pointSize = 100 / control.grid
+    model.point3d.pointSize = 64 / control.grid
 
     // 2Dモデルの点群
     model.point2d.shader = shader.sprite
@@ -678,12 +828,14 @@ const init = () =>
             point2dTextureData[(y * p2w + x) * 4 + 2] = 0x00
             point2dTextureData[(y * p2w + x) * 4 + 3] = 0x00
             const r = (x - p2w / 2) * (x - p2w / 2) + (y - p2h / 2) * (y - p2h / 2)
-            const p = 32 * 32
-            const q = 28 * 28
+            const p = (p2w / 2) * (p2w / 2)
+            const q = (p2w / 2 - 4) * (p2w / 2 - 4)
+            /*
             if(r <= p)
             {
                 point2dTextureData[(y * p2w + x) * 4 + 3] = 0xFF
             }
+            */
             if(r <= q)
             {
                 point2dTextureData[(y * p2w + x) * 4 + 0] = 0xFF
@@ -699,7 +851,7 @@ const init = () =>
         data: point2dTextureData,
     }
     model.point2d.matrix = matrix.point2d
-    model.point2d.pointSize = 128 / control.grid
+    model.point2d.pointSize = 64 / control.grid
 
     // 強調する点のモデル
     model.strongPoint.shader = shader.sprite
@@ -891,7 +1043,7 @@ const init = () =>
         data: strongPointTextureData,
     }
     model.strongPoint.matrix = matrix.strongPoint
-    model.strongPoint.pointSize = 200 / control.grid
+    model.strongPoint.pointSize = 128 / control.grid
 
     // 原点のモデル
     model.originalPoint.shader = shader.sprite
@@ -925,7 +1077,7 @@ const init = () =>
         data: originalPointTextureData,
     }
     model.originalPoint.matrix = matrix.originalPoint
-    model.originalPoint.pointSize = 400 / control.grid
+    model.originalPoint.pointSize = 256 / control.grid
 
     // テクスチャ表示用の板
     model.texture.shader = shader.texture
@@ -956,16 +1108,58 @@ const init = () =>
         3, 2, 1,
     ]
     model.texture.matrix = matrix.texture
+
+    // 3Dモデルの本体
+    model.object.shader = shader.texture
+    model.object.position = []
+    model.object.coordinate = []
+    model.object.color = []
+    model.object.index = []
+    model.object.texture =
+    {
+        width: pw,
+        height: ph,
+        data: pointTextureData,
+    }
+    model.object.matrix = matrix.object
+
+    // テクスチャ初期化
     initTexture()
 }
 init()
 
+// 頂点の削除
+const deleteVertex = (i) =>
+{
+    object.position.splice(i * 3, 3)
+    object.color.splice(i * 3, 3)
+    object.coordinate.splice(i * 2, 2)
 
+    // 関連した面も消す
+    for(let m = 0; m < object.index.length; m++)
+    {
+        if(object.index[m] === i)
+        {
+            object.index.splice(Math.floor(m / 3) * 3, 3)
+        }
+    }
+    // 面のインデクスをつめる
+    for(let m = 0; m < object.index.length; m++)
+    {
+        if(object.index[m] > i) object.index[m]--
+    }
+}
 
 // テクスチャ更新
 const updateTexture = () =>
 {
     model.texture.texture = 
+    {
+        width: object.texture.width,
+        height: object.texture.height,
+        data: object.texture.data,
+    }
+    model.object.texture = 
     {
         width: object.texture.width,
         height: object.texture.height,
@@ -982,8 +1176,8 @@ const putTexel = () =>
     else return
     const w = object.texture.width
     const h = object.texture.height
-    const x = Math.floor(control.current.texX * w / 2)
-    const y = Math.floor(control.current.texY * h / 2)
+    const x = Math.floor(control.current.texX * w)
+    const y = Math.floor(control.current.texY * h)
     if(
         x < 0 || w <= x ||
         y < 0 || h <= y
@@ -1008,8 +1202,11 @@ const halfRound = (x, a) =>
 const updateModel = () =>
 {
     const position3d = []
+    const pointColor = []
     const color = []
     const position2d = []
+    const coordinate = []
+    const pointIndex = []
     const index = []
 
     let count = 0
@@ -1017,32 +1214,53 @@ const updateModel = () =>
     // 各頂点に行う
     for(let i = 0; i < object.position.length / 3; i++)
     {
-        // 点モデル3D
+        // 座標3D
         position3d[i * 3 + 0] = object.position[i * 3 + 0]
         position3d[i * 3 + 1] = object.position[i * 3 + 1]
         position3d[i * 3 + 2] = object.position[i * 3 + 2]
 
-        // 共通
+        // 点モデル用の頂点の色
+        pointColor[i * 3 + 0] = (object.color[i * 3 + 0] + 0.5) / 2
+        pointColor[i * 3 + 1] = (object.color[i * 3 + 1] + 0.5) / 2
+        pointColor[i * 3 + 2] = (object.color[i * 3 + 2] + 0.5) / 2
+
+        // 本体モデル用の頂点の色
         color[i * 3 + 0] = object.color[i * 3 + 0]
         color[i * 3 + 1] = object.color[i * 3 + 1]
         color[i * 3 + 2] = object.color[i * 3 + 2]
-        index[i] = i
 
-        // 点モデル2D
-        position2d[i * 3 + 0] = object.coordinate[i * 2 + 0]
-        position2d[i * 3 + 1] = object.coordinate[i * 2 + 1]
+        // 点モデル用のインデクス
+        pointIndex[i] = i
+
+        // 2D点モデル用の座標2D
+        position2d[i * 3 + 0] = object.coordinate[i * 2 + 0] * 2
+        position2d[i * 3 + 1] = object.coordinate[i * 2 + 1] * 2
         position2d[i * 3 + 2] = 0
+
+        // 本体用のUV
+        coordinate[i * 2 + 0] = object.coordinate[i * 2 + 0]
+        coordinate[i * 2 + 1] = object.coordinate[i * 2 + 1]
 
         // 頂点を数える
         count++
     }
+    
+    // 本体モデル用インデクス
+    for(let i = 0; i < object.index.length; i++)
+    {
+        index[i] = object.index[i]
+    }
 
     model.point3d.position = position3d
-    model.point3d.color = color
-    model.point3d.index = index
+    model.point3d.color = pointColor
+    model.point3d.index = pointIndex
     model.point2d.position = position2d
-    model.point2d.color = color
-    model.point2d.index = index
+    model.point2d.color = pointColor
+    model.point2d.index = pointIndex
+    model.object.position = position3d
+    model.object.color = color
+    model.object.coordinate = coordinate
+    model.object.index = index
     object.vertexCount = count
 }
 
@@ -1060,9 +1278,6 @@ const animationFrame = (timestamp) =>
 
     // カーソル更新
     updateCursor(deltaTime)
-
-    // テクセルを置く
-    if(mode.name === 'texel') putTexel()
 
     // 単色で塗りつぶす
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
@@ -1124,11 +1339,13 @@ const animationFrame = (timestamp) =>
         matrix.originalPoint.initialize()
         matrix.strongPoint.initialize()
         matrix.point3d.initialize()
+        matrix.object.initialize()
 
         // 平行投影にする
         matrix.originalPoint.parallel(-1, 1, -1, 1, 1, 100)
         matrix.strongPoint.parallel(-1, 1, -1, 1, 1, 100)
         matrix.point3d.parallel(-1, 1, -1, 1, 1, 100)
+        matrix.object.parallel(-1, 1, -1, 1, 1, 100)
 
         // カメラが回っている
         if(rf)
@@ -1137,6 +1354,7 @@ const animationFrame = (timestamp) =>
             matrix.originalPoint.translateZ(50)
             matrix.strongPoint.translateZ(50)
             matrix.point3d.translateZ(50)
+            matrix.object.translateZ(50)
         }
         // 回っていない
         else
@@ -1145,18 +1363,20 @@ const animationFrame = (timestamp) =>
             matrix.originalPoint.translateZ(1)
             matrix.strongPoint.translateZ(1)
             matrix.point3d.translateZ(1)
+            matrix.object.translateZ(1)
         }
 
-        // 回転時の縮小
-        matrix.originalPoint.scaleX(control.current.scale)
-        matrix.originalPoint.scaleY(control.current.scale)
-        matrix.originalPoint.scaleZ(control.current.scale)
+
+        // 強調する点を描く
         matrix.strongPoint.scaleX(control.current.scale)
         matrix.strongPoint.scaleY(control.current.scale)
         matrix.strongPoint.scaleZ(control.current.scale)
-        matrix.point3d.scaleX(control.current.scale)
-        matrix.point3d.scaleY(control.current.scale)
-        matrix.point3d.scaleZ(control.current.scale)
+        matrix.strongPoint.rotateX(rx * Math.PI / 2)
+        matrix.strongPoint.rotateY(ry * Math.PI / 2)
+        matrix.strongPoint.translateX(halfRound(-mx, cvw))
+        matrix.strongPoint.translateY(halfRound(-my, cvh))
+        matrix.strongPoint.translateZ(halfRound(-mz, cvh))
+        model.strongPoint.drawPoints()
 
         // 原点を描く
         matrix.originalPoint.rotateX(rx * Math.PI / 2)
@@ -1166,30 +1386,48 @@ const animationFrame = (timestamp) =>
         matrix.originalPoint.translateZ(halfRound(-cz, cvh))
         model.originalPoint.drawPoints()
 
-        // 強調する点を描く
-        matrix.strongPoint.rotateX(rx * Math.PI / 2)
-        matrix.strongPoint.rotateY(ry * Math.PI / 2)
-        matrix.strongPoint.translateX(halfRound(-mx, cvw))
-        matrix.strongPoint.translateY(halfRound(-my, cvh))
-        matrix.strongPoint.translateZ(halfRound(-mz, cvh))
-        model.strongPoint.drawPoints()
-
         // 点モデルを描く
-        matrix.point3d.rotateX(rx * Math.PI / 2)
-        matrix.point3d.rotateY(ry * Math.PI / 2)
-        matrix.point3d.translateX(halfRound(-cx, cvw))
-        matrix.point3d.translateY(halfRound(-cy, cvh))
-        matrix.point3d.translateZ(halfRound(-cz, cvh))
-        model.point3d.drawPoints()
+        if(
+            mode.name === 'vertex3d' ||
+            mode.name === 'surface'
+        )
+        {
+            matrix.point3d.scaleX(control.current.scale)
+            matrix.point3d.scaleY(control.current.scale)
+            matrix.point3d.scaleZ(control.current.scale)
+            matrix.point3d.rotateX(rx * Math.PI / 2)
+            matrix.point3d.rotateY(ry * Math.PI / 2)
+            matrix.point3d.translateX(halfRound(-cx, cvw))
+            matrix.point3d.translateY(halfRound(-cy, cvh))
+            matrix.point3d.translateZ(halfRound(-cz, cvh))
+            model.point3d.drawPoints()
+        }
+
+        // モデル本体を描く
+        if(mode.name !== 'vertex3d')
+        {
+            matrix.originalPoint.scaleX(control.current.scale)
+            matrix.originalPoint.scaleY(control.current.scale)
+            matrix.originalPoint.scaleZ(control.current.scale)
+            matrix.object.scaleX(control.current.scale)
+            matrix.object.scaleY(control.current.scale)
+            matrix.object.scaleZ(control.current.scale)
+            matrix.object.rotateX(rx * Math.PI / 2)
+            matrix.object.rotateY(ry * Math.PI / 2)
+            matrix.object.translateX(halfRound(-cx, cvw))
+            matrix.object.translateY(halfRound(-cy, cvh))
+            matrix.object.translateZ(halfRound(-cz, cvh))
+            model.object.drawTriangles()
+        }
     }
 
     // 2D表示
     if(mode.dimension === 2)
     {
-        let cx = control.current.texX
+        let cx = control.current.texX * 2
         while(2 < cx) cx -= 2
         while(cx < -2) cx += 2
-        let cy = control.current.texY
+        let cy = control.current.texY * 2
         while(2 < cy) cy -= 2
         while(cy < -2) cy += 2
 
@@ -1223,6 +1461,20 @@ const animationFrame = (timestamp) =>
 requestAnimationFrame(animationFrame)
 
 
+// 全て更新
+const update = () =>
+{
+    const n = object.name
+    element.nameStrage.value = n
+    element.name.value = n
+
+    updateVertexList()
+    updateSurfaceList()
+    updateTexture()
+    updateModel()
+}
+
+
 // コールバック関数のオブジェクト
 const callback =
 {
@@ -1230,14 +1482,22 @@ const callback =
     {
         init()
     },
+    name: (e) =>
+    {
+        const n = e.target.value
+        object.name = n
+
+        // 普段のとストレージ画面の名前
+        if(e.target.id === 'name') element.nameStrage.value = n
+        if(e.target.id === 'name-strage') element.name.value = n
+    },
     // インポートファイルのロード完了
-    fileLoaded: (e) =>
+    fileImported: (e) =>
     {
         const json = e.target.result
         object = JSON.parse(json)
 
-        updateModel()
-        updateTexture()
+        update()
     },
     // インポートファイルの中身を取得後に処理を行う
     fileInput: (e) =>
@@ -1245,7 +1505,7 @@ const callback =
         const file = e.target.files[0]
         const reader = new FileReader()
         reader.readAsText(file)
-        reader.addEventListener('load', callback.fileLoaded)
+        reader.addEventListener('load', callback.fileImported)
     },
     import: (e) =>
     {
@@ -1278,15 +1538,82 @@ const callback =
         // クリックした事にしてダウンロード
         a.click()
     },
-    load: (e) =>
+    // ストレージをキャンセル
+    cancelButton: (e) =>
     {
-        e.stopPropagation()
-        e.preventDefault()
+        addClass(element.strageDiv, 'none')
+        control.strage.selected = ''
+        updateStrageList()
     },
-    save: (e) =>
+    // ストレージから削除
+    deleteButton: (e) =>
+    {
+        // 削除
+        delete listObject[control.strage.selected]
+        const listJson = JSON.stringify(listObject, null, 0)
+        localStorage.setItem(dataListName, listJson)
+        control.strage.selected = ''
+    
+        updateStrageList()
+    },
+    // ストレージからロード実行
+    loadButton: (e) =>
+    {
+        const s = control.strage.selected
+        if(!s) return
+
+        const json = localStorage.getItem(s)
+
+        object = JSON.parse(json)
+
+        addClass(element.strageDiv, 'none')
+
+        control.strage.selected = ''
+        updateStrageList()
+
+        update()
+    },
+    // ストレージのリストから選択した
+    selectStrage: (e) =>
+    {
+        const s = document.querySelectorAll('.strage')
+        for(let v of s) removeClass(v, 'selected')
+        addClass(e.target, 'selected')
+        const n = e.target.textContent
+        control.strage.selected = n
+        object.name = n
+        element.name.value = n
+        element.nameStrage.value = n
+    },
+    // ストレージ画面を開く
+    openStrage: (e) =>
+    {
+        removeClass(element.strageDiv, 'none')
+    },
+    // ストレージに保存
+    saveButton: (e) =>
     {
         e.stopPropagation()
         e.preventDefault()
+
+        const json = JSON.stringify(object, null, 0)
+        localStorage.setItem(object.name, json)
+
+        // データリスト更新
+        const dataListName = 'data-list'
+        let listJson, listObject = {}
+        if(localStorage.hasOwnProperty(dataListName))
+        {
+            listJson = localStorage.getItem(dataListName)
+            listObject = JSON.parse(listJson)
+        }
+
+        if(listObject[object.name] == undefined) listObject[object.name] = true
+
+        listJson = JSON.stringify(listObject, null, 0)
+        localStorage.setItem(dataListName, listJson)
+
+        updateStrageList()
     },
     apply3d: (e) =>
     {
@@ -1312,9 +1639,8 @@ const callback =
         control.goal.rotX = 0
         control.goal.rotY = 0
 
-        model.strongPoint.pointSize = 200 / g
-        model.originalPoint.pointSize = 400 / g
-        model.point3d.pointSize = 100 / g
+        model.strongPoint.pointSize = 128 / g
+        model.originalPoint.pointSize = 256 / g
     },
     apply2d: (e) =>
     {
@@ -1363,8 +1689,13 @@ const callback =
         if(e.target.id === 'pose-2d-mode') mode.name = 'pose2d'
         if(e.target.id === 'surface-mode') mode.name = 'surface'
     
+        // 各モード
         if(mode.name === 'param3d')
         {
+            addClass(element.put, 'disabled')
+            addClass(element.remove, 'disabled')
+            addClass(element.grab, 'disabled')
+            addClass(element.all, 'disabled')
             removeClass(element.param3dDiv, 'none')
             addClass(element.param3dMode, 'selected')
             mode.dimension = 3
@@ -1372,10 +1703,28 @@ const callback =
         }
         if(mode.name === 'vertex3d')
         {
+            removeClass(element.put, 'disabled')
+            removeClass(element.remove, 'disabled')
+            removeClass(element.grab, 'disabled')
+            removeClass(element.all, 'disabled')
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex3dMode, 'selected')
             mode.dimension = 3
             updateVertexList()
+        }
+        if(mode.name === 'surface')
+        {
+            removeClass(element.put, 'disabled')
+            removeClass(element.remove, 'disabled')
+            removeClass(element.grab, 'disabled')
+            removeClass(element.all, 'disabled')
+            removeClass(element.all, 'selected')
+            removeClass(element.surfaceDiv, 'none')
+            addClass(element.surfaceMode, 'selected')
+            mode.dimension = 3
+            updateVertexList()
+            updateSurfaceList()
+            updateTexture()
         }
         if(mode.name === 'matrix')
         {
@@ -1389,26 +1738,33 @@ const callback =
             addClass(element.pose3dMode, 'selected')
             mode.dimension = 3
         }
-        if(mode.name === 'surface')
-        {
-            removeClass(element.surfaceDiv, 'none')
-            addClass(element.surfaceMode, 'selected')
-            mode.dimension = 3
-        }
         if(mode.name === 'vertex2d')
         {
+            removeClass(element.put, 'disabled')
+            removeClass(element.remove, 'disabled')
+            removeClass(element.grab, 'disabled')
+            removeClass(element.all, 'disabled')
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex2dMode, 'selected')
             mode.dimension = 2
+            updateVertexList()
         }
         if(mode.name === 'param2d')
         {
+            addClass(element.put, 'disabled')
+            addClass(element.remove, 'disabled')
+            addClass(element.grab, 'disabled')
+            addClass(element.all, 'disabled')
             removeClass(element.param2dDiv, 'none')
             addClass(element.param2dMode, 'selected')
             mode.dimension = 2
         }
         if(mode.name === 'texel')
         {
+            removeClass(element.put, 'disabled')
+            removeClass(element.remove, 'disabled')
+            addClass(element.grab, 'disabled')
+            addClass(element.all, 'disabled')
             removeClass(element.texelDiv, 'none')
             addClass(element.texelMode, 'selected')
             mode.dimension = 2
@@ -1416,8 +1772,8 @@ const callback =
             // グリッド半分の位置に照準があった時に丸める
             const w = object.texture.width / 2
             const h = object.texture.height / 2
-            control.goal.texX = (Math.floor(control.current.texX * w) + 0.5) / w
-            control.goal.texY = (Math.floor(control.current.texY * h) + 0.5) / h
+            control.goal.texX = (Math.floor(control.current.texX * w * 2) + 0.5) / w / 2
+            control.goal.texY = (Math.floor(control.current.texY * h * 2) + 0.5) / h / 2
         }
         if(mode.name === 'pose2d')
         {
@@ -1426,11 +1782,7 @@ const callback =
             mode.dimension = 2
         }
 
-        // テクセル描きの終了
-        control.texel.remove = false
-        control.texel.put = false
-        removeClass(element.remove, 'selected')
-        removeClass(element.put, 'selected')
+        resetState()
     },
     touchSlider: (e) =>
     {
@@ -1587,6 +1939,9 @@ const callback =
 
         // グリッドの大きさによって速さを変える
         const g = 1 / control.grid * 8
+        const tw = 1 / object.texture.width * 8
+        const th = 1 / object.texture.height * 8
+        const d = mode.name === 'vertex2d'? 1 / 2 : 1
 
         // 速度
         if(mode.dimension === 3 && innerElem.id === 'scroll')
@@ -1619,13 +1974,13 @@ const callback =
         }
         if(mode.dimension === 2 && innerElem.id === 'scroll')
         {
-            control.delta.texX = nx * g
-            control.delta.texY = -ny * g
+            control.delta.texX = nx * tw * d
+            control.delta.texY = -ny * th * d
         }
         if(mode.dimension === 2 && innerElem.id === 'rotate')
         {
-            control.delta.texX = nx * 4 * g
-            control.delta.texY = -ny * 4 * g
+            control.delta.texX = nx * 4 * tw * d
+            control.delta.texY = -ny * 4 * th * d
         }
 
         // パッドの位置
@@ -1684,8 +2039,8 @@ const callback =
             control.delta.texY = 0
             const w = object.texture.width / 2
             const h = object.texture.height / 2
-            control.goal.texX = (Math.floor(control.current.texX * w) + 0.5) / w
-            control.goal.texY = (Math.floor(control.current.texY * h) + 0.5) / h
+            control.goal.texX = (Math.floor(control.current.texX * w * 2) + 0.5) / w / 2
+            control.goal.texY = (Math.floor(control.current.texY * h * 2) + 0.5) / h / 2
         }
         // 頂点2dモードの時はグリッドの半分の位置に停止できる
         if(mode.dimension === 2 && mode.name === 'vertex2d')
@@ -1694,8 +2049,8 @@ const callback =
             control.delta.texY = 0
             const w = object.texture.width
             const h = object.texture.height
-            control.goal.texX = Math.round(control.current.texX * w) / w
-            control.goal.texY = Math.round(control.current.texY * h) / h
+            control.goal.texX = Math.round(control.current.texX * w * 2) / w / 2
+            control.goal.texY = Math.round(control.current.texY * h * 2) / h / 2
         }
 
         control.delta.x = 0
@@ -1708,27 +2063,97 @@ const callback =
         innerElem.style.left = '25%'
         innerElem.style.top = '25%'
     },
-    deleteCaches: () =>
-    {
-        if (!('serviceWorker' in navigator)) return
-        navigator.serviceWorker.getRegistration()
-        .then(registration => {
-            registration.unregister();
-        })
-    },
     selectVertex: (e) =>
     {
         const t = e.target
-        const i = t.textContent
+        const i = parseInt(t.textContent)
 
-        for(let i = 0; i < control.vertex.elementList.length; i++)
+        let c = -1
+        for(let n = 0; n < control.vertex.selected.length; n++)
         {
-            removeClass(control.vertex.elementList[i], 'selected')
+            if(control.vertex.selected[n] === i) c = n
+        }
+        // 選択されていなかったら選択
+        if(c === -1)
+        {
+            control.vertex.selected.push(i)
+            addClass(t, 'selected')
+        }
+        // 選択されていたら選択解除
+        else
+        {
+            control.vertex.selected.splice(c, 1)
+            removeClass(t, 'selected')
         }
 
-        control.vertex.selected = i
-        addClass(t, 'selected')
+        // 頂点と面の選択をすべてまとめてリスト
+        updateSelectedList()
+
+        updateVertexList()
     },
+    selectSurface: (e) =>
+    {
+        const t = e.target
+        const i = parseInt(t.textContent)
+
+        let c = -1
+        for(let n = 0; n < control.surface.selected.length; n++)
+        {
+            if(control.surface.selected[n] === i) c = n
+        }
+        // 選択されていなかったら選択
+        if(c === -1)
+        {
+            control.surface.selected.push(i)
+            addClass(t, 'selected')
+        }
+        // 選択されていたら選択解除
+        else
+        {
+            control.surface.selected.splice(c, 1)
+            removeClass(t, 'selected')
+        }
+
+        // 頂点と面の選択をすべてまとめてリスト
+        updateSelectedList()
+
+        updateSurfaceList()
+    },
+    // 全選択
+    all: (e) =>
+    {
+        if(mode.name === 'vertex3d' || mode.name === 'vertex2d')
+        {
+            const s = control.vertex.selected
+            // 何も選択されていなかったら
+            if(!s.length)
+            {
+                // 全選択
+                for(let i = 0; i < object.vertexCount; i++)
+                    s.push(i)
+                addClass(e.target, 'selected')
+            }
+            // 何かが選択されていたら
+            else
+            {
+                // 全解除
+                control.vertex.selected = []
+                removeClass(e.target, 'selected')
+            }
+            updateVertexList()
+        }
+        if(mode.name === 'surface')
+        {
+            // 全解除
+            control.vertex.selected = []
+            updateVertexList()
+            control.surface.selected = []
+            updateSurfaceList()
+            removeClass(e.target, 'selected')
+        }
+        updateSelectedList()
+    },
+    // データを置く
     put: (e) =>
     {
         // 頂点置き3D
@@ -1745,14 +2170,8 @@ const callback =
             object.coordinate[n * 2 + 0] = control.current.texX
             object.coordinate[n * 2 + 1] = control.current.texY
 
+            updateVertexList()
             updateModel()
-
-            const li = document.createElement('li')
-            li.textContent = n
-            addClass(li, 'vertex')
-            li.addEventListener('pointerdown', callback.selectVertex)
-            element.verticeList.append(li)
-            control.vertex.elementList.push(li)
         }
         // 頂点置き2D
         if(mode.name === 'vertex2d')
@@ -1768,14 +2187,29 @@ const callback =
             object.coordinate[n * 2 + 0] = control.current.texX
             object.coordinate[n * 2 + 1] = control.current.texY
 
+            updateVertexList()
             updateModel()
+        }
+        // 面張り
+        if(mode.name === 'surface')
+        {
+            const v = control.vertex.selected
+            // 三角形以上
+            if(v.length >= 3)
+            {
+                // 多角形のインデクスを作る
+                for(let i = 1; i < v.length - 1; i++)
+                {
+                    object.index.push(v[0])
+                    object.index.push(v[i])
+                    object.index.push(v[i + 1])
+                }
+                control.vertex.selected = []
 
-            const li = document.createElement('li')
-            li.textContent = n
-            addClass(li, 'vertex')
-            li.addEventListener('pointerdown', callback.selectVertex)
-            element.verticeList.append(li)
-            control.vertex.elementList.push(li)
+                updateSurfaceList()
+                updateVertexList()
+                updateModel()
+            }
         }
         // テクセル描き
         if(mode.name === 'texel')
@@ -1786,32 +2220,69 @@ const callback =
             if(control.texel.put) addClass(element.put, 'selected')
             else removeClass(element.put, 'selected')
             removeClass(element.remove, 'selected')
+            
+            putTexel()
         }
     },
     remove: (e) =>
     {
-        // 頂点消し3D
-        if(mode.name === 'vertex3d')
+        // 頂点消し
+        if(
+            mode.name === 'vertex3d' ||
+            mode.name === 'vertex2d' ||
+            mode.name === 'surface'
+        )
         {
-            const n = control.vertex.selected
-            if(n === -1) return
-            object.position.splice(n * 3, 3)
-            object.color.splice(n * 3, 3)
-            object.coordinate.splice(n * 2, 2)
-            control.vertex.selected = -1
+            const s = control.vertex.selected
+
+            // 頂点の選択削除
+            const l = s.length
+            for(let n = 0; n < l; n++)
+            {
+                deleteVertex(s[0])
+            }
+
+            control.vertex.selected = []
             updateVertexList()
             updateModel()
         }
-        // 頂点消し
-        if(mode.name === 'vertex2d')
+        // 面消し
+        if(mode.name === 'surface')
         {
-            const n = control.vertex.selected
-            if(n === -1) return
-            object.position.splice(n * 3, 3)
-            object.color.splice(n * 3, 3)
-            object.coordinate.splice(n * 2, 2)
-            control.vertex.selected = -1
+            const s = control.surface.selected
+
+            // 面の選択削除
+            const l = s.length
+            for(let n = 0; n < l; n++)
+            {
+                const i = s[0]
+                object.index.splice(i * 3, 3)
+            }
+            control.surface.selected = []
+
+            /*
+            頂点ごと消すなよ…
+            const l = s.length
+            for(let n = 0; n < l; n++)
+            {
+                const i = s[0]
+                let i0 = object.index[i * 3 + 0]
+                let i1 = object.index[i * 3 + 1]
+                let i2 = object.index[i * 3 + 2]
+
+                // 1つずつ消す時番号がずれるのでそれを考慮
+                if(i1 > i0) i1--
+                if(i2 > i0) i2--
+                if(i2 > i1) i2--
+                
+                deleteVertex(i0)
+                deleteVertex(i1)
+                deleteVertex(i2)
+            }
+            */
+
             updateVertexList()
+            updateSurfaceList()
             updateModel()
         }
         // テクセル消し
@@ -1828,7 +2299,11 @@ const callback =
     // つかんで移動ツール
     grab: (e) =>
     {
-        if(mode.name !== 'vertex3d' && mode.name !== 'vertex2d') return
+        if(
+            mode.name !== 'vertex3d' &&
+            mode.name !== 'surface' &&
+            mode.name !== 'vertex2d'
+        ) return
 
         control.vertex.grab = !control.vertex.grab
 
@@ -1846,6 +2321,19 @@ const callback =
         control.vertex.color[1] = parseInt(g, 16) / 0xFF
         control.vertex.color[2] = parseInt(b, 16) / 0xFF
         control.vertex.color[3] = 1
+
+        // 選択されていたら
+        if(control.vertex.selected.length)
+        {
+            for(let n = 0; n < control.vertex.selected.length; n++)
+            {
+                const v = control.vertex.selected[n]
+                object.color[v * 3 + 0] = control.vertex.color[0]
+                object.color[v * 3 + 1] = control.vertex.color[1]
+                object.color[v * 3 + 2] = control.vertex.color[2]
+            }
+            updateModel()
+        }
     },
     texelColor: (e) =>
     {
@@ -1903,6 +2391,16 @@ const callback =
             element.textureY.textContent = 'ty: 0'
         }
     },
+    // このWebアプリを最新版にする
+    update: (e) =>
+    {
+        if (!('serviceWorker' in navigator)) return
+        navigator.serviceWorker.getRegistration()
+            .then(registration => {
+                registration.unregister()
+            })
+        window.location.reload(true)
+    },
     preventDefault: (e) =>
     {
         e.stopPropagation()
@@ -1915,14 +2413,21 @@ const callback =
     },
 }
 
-// ロードとセーブのイベント
-//element.saveForm.addEventListener('submit', callback.save)
+// ファイル系のイベント
+element.name.addEventListener('input', callback.name)
+element.nameStrage.addEventListener('input', callback.name)
 element.export.addEventListener('click', callback.export)
 element.import.addEventListener('click', callback.import)
+element.openStrage.addEventListener('click', callback.openStrage)
+element.saveButton.addEventListener('click', callback.saveButton)
+element.loadButton.addEventListener('click', callback.loadButton)
+element.deleteButton.addEventListener('click', callback.deleteButton)
+element.cancelButton.addEventListener('click', callback.cancelButton)
+// アプリアップデートボタン
+element.update.addEventListener('click', callback.update)
 // パラメータ適用
 element.param3dForm.addEventListener('submit', callback.apply3d)
 element.param2dForm.addEventListener('submit', callback.apply2d)
-element.newButton.addEventListener('click', callback.new)
 // モード変更ボタンが押された時のイベント
 element.param3dMode.addEventListener('pointerdown', callback.changeMode)
 element.vertex3dMode.addEventListener('pointerdown', callback.changeMode)
@@ -2010,6 +2515,7 @@ element.scroll.addEventListener('touchcancel', callback.releasePad)
 element.rotatePad.addEventListener('touchcancel', callback.releasePad)
 element.rotate.addEventListener('touchcancel', callback.releasePad)
 // 編集用ボタンを押した時のイベント
+element.all.addEventListener('pointerdown', callback.all)
 element.put.addEventListener('pointerdown', callback.put)
 element.remove.addEventListener('pointerdown', callback.remove)
 element.grab.addEventListener('pointerdown', callback.grab)
@@ -2032,6 +2538,32 @@ document.addEventListener('selectstart', callback.returnFalse, { passive: false 
 document.addEventListener('dblclick', callback.preventDefault, { passive: false })
 // メニュー禁止
 document.addEventListener('contextmenu', callback.returnFalse, { passive: false })
+
+
+// ストレージのリスト更新
+let listObject = {}
+const updateStrageList = () =>
+{
+    // データリスト更新
+    let listJson
+    if(localStorage.hasOwnProperty(dataListName))
+    {
+        listJson = localStorage.getItem(dataListName)
+        listObject = JSON.parse(listJson)
+    }
+
+    // リストを表示
+    element.strageList.innerHTML = ''
+    for(let k in listObject)
+    {
+        const li = document.createElement('li')
+        li.textContent = k
+        addClass(li, 'strage')
+        li.addEventListener('pointerdown', callback.selectStrage)
+        element.strageList.append(li)
+    }
+}
+updateStrageList()
 
 // PWAの登録
 if ('serviceWorker' in navigator)

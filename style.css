@@ -58,16 +58,20 @@
         grid-template-rows: repeat(32, 1fr);
         overflow: hidden;
     }
-    #save-div
+    #name-div
     {
-        grid-column: 1 / 9;
+        grid-column: 1 / 8;
         grid-row: 1 / 3;
     }
-    #load-div
+    #file-div
     {
-        grid-column: 9 / 17;
+        grid-column: 8 / 15;
         grid-row: 1 / 3;
-        text-align: right;
+    }
+    #update-div
+    {
+        grid-column: 15 / 17;
+        grid-row: 1 / 3;
     }
     #canvas
     {
@@ -87,92 +91,92 @@
     #position-x
     {
         grid-column: 9 / 11;
-        grid-row: 19 / 20;
+        grid-row: 31 / 32;
     }
     #position-y
     {
         grid-column: 11 / 13;
-        grid-row: 19 / 20;
+        grid-row: 31 / 32;
     }
     #position-z
     {
         grid-column: 13 / 15;
-        grid-row: 19 / 20;
+        grid-row: 31 / 32;
     }
     #position-t
     {
         grid-column: 15 / 17;
-        grid-row: 19 / 20;
+        grid-row: 31 / 32;
     }
     #rotate-x
     {
         grid-column: 9 / 11;
-        grid-row: 20 / 21;
+        grid-row: 32 / 33;
     }
     #rotate-y
     {
         grid-column: 11 / 13;
-        grid-row: 20 / 21;
+        grid-row: 32 / 33;
     }
     #texture-x
     {
         grid-column: 13 / 15;
-        grid-row: 20 / 21;
+        grid-row: 32 / 33;
     }
     #texture-y
     {
         grid-column: 15 / 17;
-        grid-row: 20 / 21;
+        grid-row: 32 / 33;
     }
-    #select
+    #all
     {
         grid-column: 10 / 12;
-        grid-row: 21 / 23;
+        grid-row: 19 / 21;
     }
     #up
     {
         grid-column: 12 / 14;
-        grid-row: 21 / 23;
+        grid-row: 19 / 21;
     }
     #remove
     {
         grid-column: 14 / 16;
-        grid-row: 21 / 23;
+        grid-row: 19 / 21;
     }
     #scroll-pad
     {
         grid-column: 10 / 14;
-        grid-row: 23 / 27;
+        grid-row: 21 / 25;
     }
     #depth-bar
     {
         grid-column: 14 / 16;
-        grid-row: 23 / 27;
+        grid-row: 21 / 25;
     }
     #time-bar
     {
         grid-column: 10 / 12;
-        grid-row: 27 / 31;
+        grid-row: 25 / 29;
     }
     #rotate-pad
     {
         grid-column: 12 / 16;
-        grid-row: 27 / 31;
+        grid-row: 25 / 29;
     }
     #grab
     {
         grid-column: 10 / 12;
-        grid-row: 31 / 33;
+        grid-row: 29 / 31;
     }
     #down
     {
         grid-column: 12 / 14;
-        grid-row: 31 / 33;
+        grid-row: 29 / 31;
     }
     #put
     {
         grid-column: 14 / 16;
-        grid-row: 31 / 33;
+        grid-row: 29 / 31;
     }
     #param-3d-div,
     #param-2d-div,
@@ -186,6 +190,11 @@
         grid-column: 1 / 9;
         grid-row: 23 / 33;
     }
+    #strage-div
+    {
+        grid-column: 1 / 17;
+        grid-row: 1 / 33;
+    }
 }
 
 /* 横長画面の場合の各位置 */
@@ -196,15 +205,20 @@
         grid-template-columns: repeat(32, 1fr);
         grid-template-rows: repeat(16, 1fr);
     }
-    #save-div
+    #name-div
     {
         grid-column: 1 / 9;
         grid-row: 1 / 3;
     }
-    #load-div
+    #file-div
     {
         grid-column: 1 / 9;
         grid-row: 3 / 5;
+    }
+    #update-div
+    {
+        grid-column: 31 / 33;
+        grid-row: 1 / 3;
     }
     #mode-3d
     {
@@ -219,97 +233,97 @@
     #position-x
     {
         grid-column: 25 / 27;
-        grid-row: 1 / 2;
+        grid-row: 15 / 16;
     }
     #position-y
     {
         grid-column: 27 / 29;
-        grid-row: 1 / 2;
+        grid-row: 15 / 16;
     }
     #position-z
     {
         grid-column: 29 / 31;
-        grid-row: 1 / 2;
+        grid-row: 15 / 16;
     }
     #position-t
     {
         grid-column: 31 / 33;
-        grid-row: 1 / 2;
+        grid-row: 15 / 16;
     }
     #rotate-x
     {
         grid-column: 25 / 27;
-        grid-row: 2 / 3;
+        grid-row: 16 / 17;
     }
     #rotate-y
     {
         grid-column: 27 / 29;
-        grid-row: 2 / 3;
+        grid-row: 16 / 17;
     }
     #texture-x
     {
         grid-column: 29 / 31;
-        grid-row: 2 / 3;
+        grid-row: 16 / 17;
     }
     #texture-y
     {
         grid-column: 31 / 33;
-        grid-row: 2 / 3;
+        grid-row: 16 / 17;
     }
     #canvas
     {
         grid-column: 9 / 25;
         grid-row: 1 / 17;
     }
-    #select
+    #all
     {
         grid-column: 26 / 28;
-        grid-row: 4 / 6;
+        grid-row: 3 / 5;
     }
     #up
     {
         grid-column: 28 / 30;
-        grid-row: 4 / 6;
+        grid-row: 3 / 5;
     }
     #remove
     {
         grid-column: 30 / 32;
-        grid-row: 4 / 6;
+        grid-row: 3 / 5;
     }
     #scroll-pad
     {
         grid-column: 26 / 30;
-        grid-row: 6 / 10;
+        grid-row: 5 / 9;
     }
     #depth-bar
     {
         grid-column: 30 / 32;
-        grid-row: 6 / 10;
+        grid-row: 5 / 9;
     }
     #time-bar
     {
         grid-column: 26 / 28;
-        grid-row: 10 / 14;
+        grid-row: 9 / 13;
     }
     #rotate-pad
     {
         grid-column: 28 / 32;
-        grid-row: 10 / 14;
+        grid-row: 9 / 13;
     }
     #grab
     {
         grid-column: 26 / 28;
-        grid-row: 14 / 16;
+        grid-row: 13 / 15;
     }
     #down
     {
         grid-column: 28 / 30;
-        grid-row: 14 / 16;
+        grid-row: 13 / 15;
     }
     #put
     {
         grid-column: 30 / 32;
-        grid-row: 14 / 16;
+        grid-row: 13 / 15;
     }
     #param-3d-div,
     #param-2d-div,
@@ -322,6 +336,11 @@
     {
         grid-column: 1 / 9;
         grid-row: 9 / 17;
+    }
+    #strage-div
+    {
+        grid-column: 1 / 33;
+        grid-row: 1 / 17;
     }
 }
 
@@ -380,8 +399,8 @@
     border-radius: 0;
 }
 
-#save-div,
-#load-div,
+#name-div,
+#file-div,
 #mode-3d,
 #mode-2d,
 #matrix-div,
@@ -395,43 +414,42 @@
 }
 
 /* ファイル関係のボタン */
-#name
+#name,
+#name-strage
 {
-    width: calc(100% - 4em);
+    width: 100%;
+    border-radius: 0.5em;
 }
-#save
-{
-    width: 4em;
-}
-#new,
-#load,
+#open-strage,
 #import,
 #export
 {
-    width: calc(100% / 4);
+    width: calc(100% / 3);
     display: inline-block;
 }
-#load,
-#import
+#open-strage
 {
-    border-radius: 0;
+    border-radius: 0.5em 0 0 0.5em;
 }
 #export
 {
-    border-radius: 0.5em 0 0 0.5em;
+    border-radius: 0;
 }
-#new
+#import
 {
     border-radius: 0 0.5em 0.5em 0;
 }
-/* ボタンの形を変えてくっつける */
-#name
+
+/* アプリ更新ボタン */
+#update
 {
-    border-radius: 0.5em 0 0 0.5em;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
 }
-#save
+#name-strage
 {
-    border-radius: 0 0.5em 0.5em 0;
+    margin-bottom: 0.25em;
 }
 
 /* キャンバス*/
@@ -530,7 +548,7 @@
 .second-button.disabled,
 .third-button.disabled
 {
-    background-color: #777;
+    background-color: #777 !important;
     color: #999;
     border-color: #777;
 }
@@ -653,16 +671,52 @@ input[type="color"]
     display: block;
 }
 
-/* リストの頂点 */
-.vertex
+/* ファイル一覧画面 */
+#strage-div
+{
+    background-color: rgba(136, 136, 136, 0.5);
+    padding: 0.25em;
+}
+#cancel-button
+{
+    border-radius: 0.5em 0 0 0.5em;
+    width: 25%;
+    display: inline-block;
+}
+#delete-button
+{
+    border-radius: 0;
+    width: 25%;
+    display: inline-block;
+}
+#save-button
+{
+    border-radius: 0;
+    width: 25%;
+    display: inline-block;
+}
+#load-button
+{
+    border-radius: 0 0.5em 0.5em 0;
+    width: 25%;
+    display: inline-block;
+}
+
+/* リストの頂点と面 */
+.strage,
+.vertex,
+.surface
 {
     background-color: #666;
     border-style: none;
     border-width: 0;
     border-radius: 0.5em;
+    padding: 0.5em;
     margin-top: 0.25em;
 }
-.vertex.selected
+.strage.selected,
+.vertex.selected,
+.surface.selected
 {
     background-color: #444;
 }
@@ -748,7 +802,7 @@ html
     word-spacing: 0.125em;
     box-sizing: border-box;
     scrollbar-color: #AAA #888;
-    scrollbar-width: 0.125em;
+    scrollbar-width: thin;
     overflow-x: hidden;
     overflow-y: auto;
     touch-action: manipulation;

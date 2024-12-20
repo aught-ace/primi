@@ -13,19 +13,16 @@
     </head>
     <body>
         <div id="editor">
-            <div id="save-div">
-                <form id="save-form" action="">
-                    <input
-                        id="name" value="" autocomplete="on" type="text"><input
-                        id="save" value="Save" type="submit" disabled>
-                </form>
+            <div id="name-div">
+                <input id="name" value="" autocomplete="on" type="text">
             </div>
-            <div id="load-div">
-                <input
+            <div id="file-div"><input
+                    id="open-strage" value="Strage" type="button"><input
                     id="export" value="Export" type="button"><input
-                    id="import" value="Import" type="button"><input
-                    id="load" value="Load" type="button" disabled><input
-                    id="new" value="New" type="button">
+                    id="import" value="Import" type="button">
+            </div>
+            <div id="update-div">
+                <img src="icon.png" id="update">
             </div>
             <div id="mode-3d">
                 <span
@@ -43,7 +40,7 @@
                     id="pose-2d-mode" class="radio-button disabled">Pose</span>
             </div>
 
-            <canvas id="canvas" width="800" height="800"></canvas>
+            <canvas id="canvas" width="512" height="512"></canvas>
 
             <div id="position-x">x: 0</div>
             <div id="position-y">y: 0</div>
@@ -55,13 +52,13 @@
             <div id="texture-x">tx: 0</div>
             <div id="texture-y">ty: 0</div>
 
-            <div id="select" class="third-button disabled">Sel</div>
+            <div id="all" class="third-button disabled">All</div>
             <div id="up" class="second-button disabled">Up</div>
-            <div id="remove" class="first-button">Rem</div>
+            <div id="remove" class="first-button disabled">Rem</div>
             
-            <div id="grab" class="third-button">Grab</div>
+            <div id="grab" class="third-button disabled">Grab</div>
             <div id="down" class="second-button disabled">Down</div>
-            <div id="put" class="first-button">Put</div>
+            <div id="put" class="first-button disabled">Put</div>
 
             <div id="scroll-pad">
                 <div id="scroll" style="left:25%;top:25%;">Scroll</div>
@@ -79,7 +76,7 @@
             <div id="param-3d-div">
                 <form id="param-3d-form" action="">
                     <dl>
-                        <dt>Grids per 1m</dt>
+                        <dt>Grids / m</dt>
                         <dd>
                             <input id="grid" value="7" min="1" max="31" type="number">
                         </dd>
@@ -93,9 +90,9 @@
             <div id="param-2d-div" class="none">
                 <form id="param-2d-form" action="">
                     <dl>
-                        <dt>Width</dt>
+                        <dt>Texels / width</dt>
                         <dd><input id="texture-width" value="16" min="1" max="255" type="number"></dd>
-                        <dt>Height</dt>
+                        <dt>Texels / height</dt>
                         <dd><input id="texture-height" value="16" min="1" max="255" type="number"></dd>
                         <dt>Appry</dt>
                         <dd>
@@ -105,19 +102,31 @@
                 </form>
             </div>
             <div id="vertex-div" class="none">
-                <dt>Vertex List</dt>
-                <dd>
-                    <ul id="vertice-list"></ul>
-                </dd>
-                <dt>Vertex Color</dt>
-                <dd>
-                    <input value="#FFFFFF" id="vertex-color" type="color">
-                </dd>
+                <dl>
+                    <dt>Vertex List</dt>
+                    <dd>
+                        <ul id="vertex-list"></ul>
+                    </dd>
+                    <dt>Vertex Color</dt>
+                    <dd>
+                        <input value="#FFFFFF" id="vertex-color" type="color">
+                    </dd>
+                </dl>
             </div>
             <div id="matrix-div" class="none">
                 <ul id="matrix-list"></ul>
             </div>
             <div id="surface-div" class="none">
+                <dl>
+                    <dt>Surface List</dt>
+                    <dd>
+                        <ul id="surface-list"></ul>
+                    </dd>
+                    <dt>Vertex List</dt>
+                    <dd>
+                        <ul id="vertex-list-surface"></ul>
+                    </dd>
+                </dl>
             </div>
             <div id="texel-div" class="none">
                 <dl>
@@ -130,6 +139,16 @@
             <div id="pose-3d-div" class="none">
             </div>
             <div id="pose-2d-div" class="none">
+            </div>
+
+            <div id="strage-div" class="none">
+                <input id="name-strage" value="" autocomplete="on" type="text">
+                <input
+                    value="Cancel" id="cancel-button" type="button"><input
+                    value="Delete" id="delete-button" type="button"><input
+                    value="Save" id="save-button" type="button"><input
+                    value="Load" id="load-button" type="button">
+                <ul id="strage-list"></ul>
             </div>
         </div>
 
