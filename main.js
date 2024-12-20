@@ -401,8 +401,8 @@ const updateVertexList = () =>
     element.vertexListSurface.innerHTML = ''
 
     const s = 1 / control.grid / 2
-    const sw = 1 / object.texture.width / 2
-    const sh = 1 / object.texture.height / 2
+    const sw = 1 / object.texture.width / 4
+    const sh = 1 / object.texture.height / 4
     for(let n = 0; n < object.vertexCount; n++)
     {
         // グリッド範囲内の頂点をリスト表示
@@ -415,10 +415,10 @@ const updateVertexList = () =>
             object.position[n * 3 + 2] > control.current.z - s &&
             object.position[n * 3 + 2] < control.current.z + s ||
             mode.dimension === 2 &&
-            object.coordinate[n * 2 + 0] > control.current.texX * 2 - sw &&
-            object.coordinate[n * 2 + 0] < control.current.texX * 2 + sw &&
-            object.coordinate[n * 2 + 1] > control.current.texY * 2 - sh &&
-            object.coordinate[n * 2 + 1] < control.current.texY * 2 + sh
+            object.coordinate[n * 2 + 0] > control.current.texX - sw &&
+            object.coordinate[n * 2 + 0] < control.current.texX + sw &&
+            object.coordinate[n * 2 + 1] > control.current.texY - sh &&
+            object.coordinate[n * 2 + 1] < control.current.texY + sh
         if(r)
         {
             const li = document.createElement('li')
