@@ -17,14 +17,14 @@
                 <form id="save-form" action="">
                     <input
                         id="name" value="" autocomplete="on" type="text"><input
-                        id="save" value="Save" type="submit">
+                        id="save" value="Save" type="submit" disabled>
                 </form>
             </div>
             <div id="load-div">
                 <input
-                    id="export" value="Export" type="button" disabled><input
-                    id="import" value="Import" type="button" disabled><input
-                    id="load" value="Load" type="button"><input
+                    id="export" value="Export" type="button"><input
+                    id="import" value="Import" type="button"><input
+                    id="load" value="Load" type="button" disabled><input
                     id="new" value="New" type="button">
             </div>
             <div id="mode-3d">
@@ -105,13 +105,13 @@
                 </form>
             </div>
             <div id="vertex-div" class="none">
-                <dt>Vertex Color</dt>
-                <dd>
-                    <input value="#FFFFFF" id="vertex-color" type="color">
-                </dd>
                 <dt>Vertex List</dt>
                 <dd>
                     <ul id="vertice-list"></ul>
+                </dd>
+                <dt>Vertex Color</dt>
+                <dd>
+                    <input value="#FFFFFF" id="vertex-color" type="color">
                 </dd>
             </div>
             <div id="matrix-div" class="none">

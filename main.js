@@ -47,7 +47,8 @@ const element =
     pose2dDiv: document.querySelector('#pose-2d-div'),
     texelDiv: document.querySelector('#texel-div'),
     saveForm: document.querySelector('#save-form'),
-    exportForm: document.querySelector('#export-form'),
+    import: document.querySelector('#import'),
+    export: document.querySelector('#export'),
     newButton: document.querySelector('#new'),
     scrollPad: document.querySelector('#scroll-pad'),
     rotatePad: document.querySelector('#rotate-pad'),
@@ -75,103 +76,11 @@ const element =
     verticeList: document.querySelector('#vertice-list'),
 }
 
-// オブジェクト本体
-const object =
-{
-    name: new Date()
-        .toLocaleDateString(
-            [],
-            {
-                year: '2-digit',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            }
-        ).replaceAll(/[\/: ]/g, ''),
-    model:
-    {
-        position: [],
-    },
-    texture:
-    {
-        coordinate: [],
-        width: 16,
-        height: 16,
-        data: [],
-    },
-    color: [],
-    index: [],
-    nextIndex: 0,
-}
-element.name.value = object.name
-
 // 操作オブジェクト
-const control =
-{
-    delta:
-    {
-        x: 0,
-        y: 0,
-        z: 0,
-        t: 0,
-        rotX: 0,
-        rotY: 0,
-        texX: 0,
-        texY: 0,
-    },
-    current:
-    {
-        x: 0,
-        y: 0,
-        z: 0,
-        t: 0,
-        rotX: 0,
-        rotY: 0,
-        texX: 0.5 / (object.texture.width / 2),
-        texY: 0.5 / (object.texture.height / 2),
-        scale: 1,
-    },
-    goal:
-    {
-        x: 0,
-        y: 0,
-        z: 0,
-        t: 0,
-        rotX: 0,
-        rotY: 0,
-        texX: 0.5 / (object.texture.width / 2),
-        texY: 0.5 / (object.texture.height / 2),
-        scale: 1,
-    },
-    update:
-    {
-        x: false,
-        y: false,
-        z: false,
-        t: false,
-        rotX: false,
-        rotY: false,
-        texX: false,
-        texY: false,
-    },
-    vertex:
-    {
-        selected: -1,
-        elementList: [],
-        color: [1, 1, 1, 1],
-        grab: false,
-    },
-    texel:
-    {
-        put: false,
-        remove: false,
-        color: [0, 0, 0, 255],
-    },
-    grid: 7,
-}
+let control
 
+// オブジェクト本体
+let object
 
 // 現在のカーソル位置などの更新
 const updateCursor = (deltaTime) =>
@@ -278,35 +187,35 @@ const updateCursor = (deltaTime) =>
         {
             if(control.vertex.selected === -1)
             {
-                for(let i = 0; i < object.nextIndex; i++)
+                for(let i = 0; i < object.vertexCount; i++)
                 {
-                    object.model.position[i * 3 + 0] += control.current.x - x
-                    object.model.position[i * 3 + 1] += control.current.y - y
-                    object.model.position[i * 3 + 2] += control.current.z - z
+                    object.position[i * 3 + 0] += control.current.x - x
+                    object.position[i * 3 + 1] += control.current.y - y
+                    object.position[i * 3 + 2] += control.current.z - z
                 }
             }
             else
             {
                 const i = control.vertex.selected
-                object.model.position[i * 3 + 0] += control.current.x - x
-                object.model.position[i * 3 + 1] += control.current.y - y
-                object.model.position[i * 3 + 2] += control.current.z - z
+                object.position[i * 3 + 0] += control.current.x - x
+                object.position[i * 3 + 1] += control.current.y - y
+                object.position[i * 3 + 2] += control.current.z - z
             }
         } else if(mode.name === 'vertex2d')
         {
             if(control.vertex.selected === -1)
             {
-                for(let i = 0; i < object.nextIndex; i++)
+                for(let i = 0; i < object.vertexCount; i++)
                 {
-                    object.texture.coordinate[i * 2 + 0] += control.current.texX - texX
-                    object.texture.coordinate[i * 2 + 1] += control.current.texY - texY
+                    object.coordinate[i * 2 + 0] += control.current.texX - texX
+                    object.coordinate[i * 2 + 1] += control.current.texY - texY
                 }
             }
             else
             {
                 const i = control.vertex.selected
-                object.texture.coordinate[i * 2 + 0] += control.current.texX - texX
-                object.texture.coordinate[i * 2 + 1] += control.current.texY - texY
+                object.coordinate[i * 2 + 0] += control.current.texX - texX
+                object.coordinate[i * 2 + 1] += control.current.texY - texY
             }
         }
         updateModel()
@@ -350,6 +259,56 @@ matrix.strongPoint = new Matrix()
 matrix.texture = new Matrix()
 matrix.center = new Matrix()
 
+// クラス追加
+const addClass = (element, className) =>
+{
+    if(!element.classList.contains(className)) element.classList.add(className)
+}
+// クラス削除
+const removeClass = (element, className) =>
+{
+    if(element.classList.contains(className)) element.classList.remove(className)
+}
+
+
+// 頂点リスト更新
+const updateVertexList = () =>
+{
+    control.vertex.elementList = []
+    element.verticeList.innerHTML = ''
+
+    const s = 1 / control.grid / 2
+    const sw = 1 / object.texture.width / 2
+    const sh = 1 / object.texture.height / 2
+    for(let n = 0; n < object.vertexCount; n++)
+    {
+        // グリッド範囲内の頂点をリスト表示
+        const r = 
+            mode.dimension === 3 &&
+            object.position[n * 3 + 0] > control.current.x - s &&
+            object.position[n * 3 + 0] < control.current.x + s &&
+            object.position[n * 3 + 1] > control.current.y - s &&
+            object.position[n * 3 + 1] < control.current.y + s &&
+            object.position[n * 3 + 2] > control.current.z - s &&
+            object.position[n * 3 + 2] < control.current.z + s ||
+            mode.dimension === 2 &&
+            object.coordinate[n * 2 + 0] > control.current.texX - sw &&
+            object.coordinate[n * 2 + 0] < control.current.texX + sw &&
+            object.coordinate[n * 2 + 1] > control.current.texY - sh &&
+            object.coordinate[n * 2 + 1] < control.current.texY + sh
+        if(r)
+        {
+            const li = document.createElement('li')
+            li.textContent = n
+            addClass(li, 'vertex')
+            if(n == control.vertex.selected) addClass(li, 'selected')
+            li.addEventListener('pointerdown', callback.selectVertex)
+            element.verticeList.append(li)
+            control.vertex.elementList.push(li)
+        }
+    }
+}
+
 // テクスチャ初期化
 const initTexture = () =>
 {
@@ -366,6 +325,136 @@ const initTexture = () =>
 // 初期化
 const init = () =>
 {
+    // モードを戻す
+    mode.name = 'param3d'
+    mode.dimension = 3
+    
+    addClass(element.pose3dDiv, 'none')
+    addClass(element.pose2dDiv, 'none')
+    addClass(element.param3dDiv, 'none')
+    addClass(element.param2dDiv, 'none')
+    addClass(element.vertexDiv, 'none')
+    addClass(element.surfaceDiv, 'none')
+    addClass(element.matrixDiv, 'none')
+    addClass(element.texelDiv, 'none')
+
+    removeClass(element.param3dMode, 'selected')
+    removeClass(element.param2dMode, 'selected')
+    removeClass(element.vertex3dMode, 'selected')
+    removeClass(element.vertex2dMode, 'selected')
+    removeClass(element.matrixMode, 'selected')
+    removeClass(element.texelMode, 'selected')
+    removeClass(element.surfaceMode, 'selected')
+    removeClass(element.pose3dMode, 'selected')
+    removeClass(element.pose2dMode, 'selected')
+
+    removeClass(element.param3dDiv, 'none')
+    addClass(element.param3dMode, 'selected')
+
+    // 操作オブジェクト
+    control =
+    {
+        delta:
+        {
+            x: 0,
+            y: 0,
+            z: 0,
+            t: 0,
+            rotX: 0,
+            rotY: 0,
+            texX: 0,
+            texY: 0,
+        },
+        current:
+        {
+            x: 0,
+            y: 0,
+            z: 0,
+            t: 0,
+            rotX: 0,
+            rotY: 0,
+            texX: 0,
+            texY: 0,
+            scale: 1,
+        },
+        goal:
+        {
+            x: 0,
+            y: 0,
+            z: 0,
+            t: 0,
+            rotX: 0,
+            rotY: 0,
+            texX: 0,
+            texY: 0,
+            scale: 1,
+        },
+        update:
+        {
+            x: false,
+            y: false,
+            z: false,
+            t: false,
+            rotX: false,
+            rotY: false,
+            texX: false,
+            texY: false,
+        },
+        vertex:
+        {
+            selected: -1,
+            elementList: [],
+            color: [1, 1, 1, 1],
+            grab: false,
+        },
+        texel:
+        {
+            put: false,
+            remove: false,
+            color: [0, 0, 0, 255],
+        },
+        grid: 7,
+    }
+
+    // 3Dモデルのオブジェクト
+    object =
+    {
+        name: new Date()
+            .toLocaleDateString(
+                [],
+                {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }
+            ).replaceAll(/[\/: ]/g, ''),
+        position: [],
+        coordinate: [],
+        color: [],
+        index: [],
+        vertexCount: 0,
+        texture:
+        {
+            width: 16,
+            height: 16,
+            data: [],
+        },
+    }
+    element.name.value = object.name
+
+    // テクセル描き状態などのオフ
+    control.vertex.grab = false
+    control.texel.remove = false
+    control.texel.put = false
+    removeClass(element.remove, 'selected')
+    removeClass(element.put, 'selected')
+
+    // 頂点リスト更新
+    updateVertexList()
+
     // 描いてあるものを消去
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
     renderer.clear(0.5, 0.5, 0.5, 1)
@@ -873,41 +962,14 @@ init()
 
 
 
-// 頂点リスト更新
-const updateVertexList = () =>
+// テクスチャ更新
+const updateTexture = () =>
 {
-    control.vertex.elementList = []
-    element.verticeList.innerHTML = ''
-
-    const s = 1 / control.grid / 2
-    const sw = 1 / object.texture.width / 2
-    const sh = 1 / object.texture.height / 2
-    for(let n = 0; n < object.nextIndex; n++)
+    model.texture.texture = 
     {
-        // グリッド範囲内の頂点をリスト表示
-        const r = 
-            mode.dimension === 3 &&
-            object.model.position[n * 3 + 0] > control.current.x - s &&
-            object.model.position[n * 3 + 0] < control.current.x + s &&
-            object.model.position[n * 3 + 1] > control.current.y - s &&
-            object.model.position[n * 3 + 1] < control.current.y + s &&
-            object.model.position[n * 3 + 2] > control.current.z - s &&
-            object.model.position[n * 3 + 2] < control.current.z + s ||
-            mode.dimension === 2 &&
-            object.texture.coordinate[n * 2 + 0] > control.current.texX - sw &&
-            object.texture.coordinate[n * 2 + 0] < control.current.texX + sw &&
-            object.texture.coordinate[n * 2 + 1] > control.current.texY - sh &&
-            object.texture.coordinate[n * 2 + 1] < control.current.texY + sh
-        if(r)
-        {
-            const li = document.createElement('li')
-            li.textContent = n
-            addClass(li, 'vertex')
-            if(n == control.vertex.selected) addClass(li, 'selected')
-            li.addEventListener('pointerdown', callback.selectVertex)
-            element.verticeList.append(li)
-            control.vertex.elementList.push(li)
-        }
+        width: object.texture.width,
+        height: object.texture.height,
+        data: object.texture.data,
     }
 }
 
@@ -931,12 +993,8 @@ const putTexel = () =>
     object.texture.data[(y * w + x) * 4 + 1] = c[1]
     object.texture.data[(y * w + x) * 4 + 2] = c[2]
     object.texture.data[(y * w + x) * 4 + 3] = c[3]
-    model.texture.texture = 
-    {
-        width: object.texture.width,
-        height: object.texture.height,
-        data: object.texture.data,
-    }
+
+    updateTexture()
 }
 
 // xを半分の値で丸める
@@ -957,12 +1015,12 @@ const updateModel = () =>
     let count = 0
 
     // 各頂点に行う
-    for(let i = 0; i < object.model.position.length / 3; i++)
+    for(let i = 0; i < object.position.length / 3; i++)
     {
         // 点モデル3D
-        position3d[i * 3 + 0] = object.model.position[i * 3 + 0]
-        position3d[i * 3 + 1] = object.model.position[i * 3 + 1]
-        position3d[i * 3 + 2] = object.model.position[i * 3 + 2]
+        position3d[i * 3 + 0] = object.position[i * 3 + 0]
+        position3d[i * 3 + 1] = object.position[i * 3 + 1]
+        position3d[i * 3 + 2] = object.position[i * 3 + 2]
 
         // 共通
         color[i * 3 + 0] = object.color[i * 3 + 0]
@@ -971,8 +1029,8 @@ const updateModel = () =>
         index[i] = i
 
         // 点モデル2D
-        position2d[i * 3 + 0] = object.texture.coordinate[i * 2 + 0]
-        position2d[i * 3 + 1] = object.texture.coordinate[i * 2 + 1]
+        position2d[i * 3 + 0] = object.coordinate[i * 2 + 0]
+        position2d[i * 3 + 1] = object.coordinate[i * 2 + 1]
         position2d[i * 3 + 2] = 0
 
         // 頂点を数える
@@ -985,7 +1043,7 @@ const updateModel = () =>
     model.point2d.position = position2d
     model.point2d.color = color
     model.point2d.index = index
-    object.nextIndex = count
+    object.vertexCount = count
 }
 
 
@@ -1039,12 +1097,12 @@ const animationFrame = (timestamp) =>
         while(3 < ry) ry -= 4
         while(ry < 0) ry += 4
 
-        // 回っていなければ
+        // カメラが回っていなければ
         if(!rf)
         {
+            // 小さな点の背景を描画
             matrix.bg3d.initialize()
             let x, y
-            // 小さな点の背景を描画
             if(rx === 0 && ry === 0) { x = mx ; y = my }
             if(rx === 0 && ry === 1) { x = mz ; y = my }
             if(rx === 0 && ry === 2) { x = -mx ; y = my }
@@ -1067,15 +1125,27 @@ const animationFrame = (timestamp) =>
         matrix.strongPoint.initialize()
         matrix.point3d.initialize()
 
-        // 平行投影
-        matrix.originalPoint.parallel(-1, 1, -1, 1, 1, 1000)
-        matrix.strongPoint.parallel(-1, 1, -1, 1, 1, 1000)
-        matrix.point3d.parallel(-1, 1, -1, 1, 1, 1000)
+        // 平行投影にする
+        matrix.originalPoint.parallel(-1, 1, -1, 1, 1, 100)
+        matrix.strongPoint.parallel(-1, 1, -1, 1, 1, 100)
+        matrix.point3d.parallel(-1, 1, -1, 1, 1, 100)
 
-        // すべて1だけ前進させて映るようにする
-        matrix.originalPoint.translateZ(1)
-        matrix.strongPoint.translateZ(1)
-        matrix.point3d.translateZ(1)
+        // カメラが回っている
+        if(rf)
+        {
+            // すべて50だけ前進させて映るようにする
+            matrix.originalPoint.translateZ(50)
+            matrix.strongPoint.translateZ(50)
+            matrix.point3d.translateZ(50)
+        }
+        // 回っていない
+        else
+        {
+            // すべて1だけ前進させてカメラの前方のものだけ映るようにする
+            matrix.originalPoint.translateZ(1)
+            matrix.strongPoint.translateZ(1)
+            matrix.point3d.translateZ(1)
+        }
 
         // 回転時の縮小
         matrix.originalPoint.scaleX(control.current.scale)
@@ -1153,29 +1223,68 @@ const animationFrame = (timestamp) =>
 requestAnimationFrame(animationFrame)
 
 
-// クラス追加
-const addClass = (element, className) =>
-{
-    if(!element.classList.contains(className)) element.classList.add(className)
-}
-// クラス削除
-const removeClass = (element, className) =>
-{
-    if(element.classList.contains(className)) element.classList.remove(className)
-}
-
 // コールバック関数のオブジェクト
 const callback =
 {
-    load: (e) =>
+    new: (e) =>
+    {
+        init()
+    },
+    // インポートファイルのロード完了
+    fileLoaded: (e) =>
+    {
+        const json = e.target.result
+        object = JSON.parse(json)
+
+        updateModel()
+        updateTexture()
+    },
+    // インポートファイルの中身を取得後に処理を行う
+    fileInput: (e) =>
+    {
+        const file = e.target.files[0]
+        const reader = new FileReader()
+        reader.readAsText(file)
+        reader.addEventListener('load', callback.fileLoaded)
+    },
+    import: (e) =>
     {
         // フォーム送信をキャンセル
+        e.stopPropagation()
+        e.preventDefault()
+
+        // ロード用のinputタグ
+        const inputFile = document.createElement('input')
+        inputFile.type = 'file'
+        inputFile.addEventListener('change', callback.fileInput)
+        inputFile.click()
+    },
+    export: (e) =>
+    {
+        e.stopPropagation()
+        e.preventDefault()
+
+        // json作成
+        const json = JSON.stringify(object, null, 0)
+
+        // blob化
+        const blob = new Blob([json], { type: 'application/json', })
+
+        // ダウンロード用のaタグ
+        const a = document.createElement('a')
+        a.href =  URL.createObjectURL(blob)
+        a.download = object.name + '.space'
+
+        // クリックした事にしてダウンロード
+        a.click()
+    },
+    load: (e) =>
+    {
         e.stopPropagation()
         e.preventDefault()
     },
     save: (e) =>
     {
-        // フォーム送信をキャンセル
         e.stopPropagation()
         e.preventDefault()
     },
@@ -1259,12 +1368,14 @@ const callback =
             removeClass(element.param3dDiv, 'none')
             addClass(element.param3dMode, 'selected')
             mode.dimension = 3
+            updateVertexList()
         }
         if(mode.name === 'vertex3d')
         {
             removeClass(element.vertexDiv, 'none')
             addClass(element.vertex3dMode, 'selected')
             mode.dimension = 3
+            updateVertexList()
         }
         if(mode.name === 'matrix')
         {
@@ -1623,16 +1734,16 @@ const callback =
         // 頂点置き3D
         if(mode.name === 'vertex3d')
         {
-            const n = object.nextIndex++
+            const n = object.vertexCount++
 
-            object.model.position[n * 3 + 0] = control.current.x
-            object.model.position[n * 3 + 1] = control.current.y
-            object.model.position[n * 3 + 2] = control.current.z
+            object.position[n * 3 + 0] = control.current.x
+            object.position[n * 3 + 1] = control.current.y
+            object.position[n * 3 + 2] = control.current.z
             object.color[n * 3 + 0] = control.vertex.color[0]
             object.color[n * 3 + 1] = control.vertex.color[1]
             object.color[n * 3 + 2] = control.vertex.color[2]
-            object.texture.coordinate[n * 2 + 0] = control.current.texX
-            object.texture.coordinate[n * 2 + 1] = control.current.texY
+            object.coordinate[n * 2 + 0] = control.current.texX
+            object.coordinate[n * 2 + 1] = control.current.texY
 
             updateModel()
 
@@ -1646,16 +1757,16 @@ const callback =
         // 頂点置き2D
         if(mode.name === 'vertex2d')
         {
-            const n = object.nextIndex++
+            const n = object.vertexCount++
 
-            object.model.position[n * 3 + 0] = control.current.x
-            object.model.position[n * 3 + 1] = control.current.y
-            object.model.position[n * 3 + 2] = control.current.z
+            object.position[n * 3 + 0] = control.current.x
+            object.position[n * 3 + 1] = control.current.y
+            object.position[n * 3 + 2] = control.current.z
             object.color[n * 3 + 0] = control.vertex.color[0]
             object.color[n * 3 + 1] = control.vertex.color[1]
             object.color[n * 3 + 2] = control.vertex.color[2]
-            object.texture.coordinate[n * 2 + 0] = control.current.texX
-            object.texture.coordinate[n * 2 + 1] = control.current.texY
+            object.coordinate[n * 2 + 0] = control.current.texX
+            object.coordinate[n * 2 + 1] = control.current.texY
 
             updateModel()
 
@@ -1684,9 +1795,9 @@ const callback =
         {
             const n = control.vertex.selected
             if(n === -1) return
-            object.model.position.splice(n * 3, 3)
+            object.position.splice(n * 3, 3)
             object.color.splice(n * 3, 3)
-            object.texture.coordinate.splice(n * 2, 2)
+            object.coordinate.splice(n * 2, 2)
             control.vertex.selected = -1
             updateVertexList()
             updateModel()
@@ -1696,9 +1807,9 @@ const callback =
         {
             const n = control.vertex.selected
             if(n === -1) return
-            object.model.position.splice(n * 3, 3)
+            object.position.splice(n * 3, 3)
             object.color.splice(n * 3, 3)
-            object.texture.coordinate.splice(n * 2, 2)
+            object.coordinate.splice(n * 2, 2)
             control.vertex.selected = -1
             updateVertexList()
             updateModel()
@@ -1805,11 +1916,13 @@ const callback =
 }
 
 // ロードとセーブのイベント
-element.saveForm.addEventListener('submit', callback.save)
+//element.saveForm.addEventListener('submit', callback.save)
+element.export.addEventListener('click', callback.export)
+element.import.addEventListener('click', callback.import)
 // パラメータ適用
 element.param3dForm.addEventListener('submit', callback.apply3d)
 element.param2dForm.addEventListener('submit', callback.apply2d)
-//element.newButton.addEventListener('click', callback.deleteCaches)
+element.newButton.addEventListener('click', callback.new)
 // モード変更ボタンが押された時のイベント
 element.param3dMode.addEventListener('pointerdown', callback.changeMode)
 element.vertex3dMode.addEventListener('pointerdown', callback.changeMode)
