@@ -38,10 +38,6 @@ const element =
     texelMode: document.querySelector('#texel-mode'),
     pose3dMode: document.querySelector('#pose-3d-mode'),
     pose2dMode: document.querySelector('#pose-2d-mode'),
-    depthBar: document.querySelector('#depth-bar'),
-    depth: document.querySelector('#depth'),
-    timeBar: document.querySelector('#time-bar'),
-    time: document.querySelector('#time'),
     surfaceDiv: document.querySelector('#surface-div'),
     vertexDiv: document.querySelector('#vertex-div'),
     matrixDiv: document.querySelector('#matrix-div'),
@@ -52,10 +48,6 @@ const element =
     texelDiv: document.querySelector('#texel-div'),
     import: document.querySelector('#import'),
     export: document.querySelector('#export'),
-    scrollPad: document.querySelector('#scroll-pad'),
-    rotatePad: document.querySelector('#rotate-pad'),
-    scroll: document.querySelector('#scroll'),
-    rotate: document.querySelector('#rotate'),
     grid: document.querySelector('#grid'),
     textureWidth: document.querySelector('#texture-width'),
     textureHeight: document.querySelector('#texture-height'),
@@ -78,14 +70,20 @@ const element =
     vertexList: document.querySelector('#vertex-list'),
     surfaceList: document.querySelector('#surface-list'),
     vertexListSurface: document.querySelector('#vertex-list-surface'),
+    openStrage: document.querySelector('#open-strage'),
+    openFile: document.querySelector('#open-file'),
     strageDiv: document.querySelector('#strage-div'),
     strageList: document.querySelector('#strage-list'),
     loadButton: document.querySelector('#load-button'),
     deleteButton: document.querySelector('#delete-button'),
     cancelButton: document.querySelector('#cancel-button'),
     saveButton: document.querySelector('#save-button'),
-    openStrage: document.querySelector('#open-strage'),
     nameStrage: document.querySelector('#name-strage'),
+    nameFile: document.querySelector('#name-file'),
+    strageForm: document.querySelector('#strage-form'),
+    fileForm: document.querySelector('#file-form'),
+    cancelFile: document.querySelector('#cancel-file'),
+    fileDiv: document.querySelector('#file-div'),
 }
 
 // 操作オブジェクト
@@ -95,10 +93,8 @@ let control
 let object
 
 // 現在のカーソル位置などの更新
-const updateCursor = (deltaTime) =>
+const updateCursor = () =>
 {
-    const d = deltaTime / 1000
-
     // 前回の値を対比
     const x = control.current.x
     const y = control.current.y
@@ -110,24 +106,32 @@ const updateCursor = (deltaTime) =>
     const texY = control.current.texY
 
     // 位置に速度を加算
-    control.current.x += control.delta.x * d
-    control.current.y += control.delta.y * d
-    control.current.z += control.delta.z * d
-    control.current.t += control.delta.t * d
-    control.current.rotX += control.delta.rotX * d
-    control.current.rotY += control.delta.rotY * d
-    control.current.texX += control.delta.texX * d
-    control.current.texY += control.delta.texY * d
+    control.current.x += control.delta.x
+    control.current.y += control.delta.y
+    control.current.z += control.delta.z
+    control.current.t += control.delta.t
+    control.current.rotX += control.delta.rotX
+    control.current.rotY += control.delta.rotY
+    control.current.texX += control.delta.texX
+    control.current.texY += control.delta.texY
+    control.goal.x += control.delta.x
+    control.goal.y += control.delta.y
+    control.goal.z += control.delta.z
+    control.goal.t += control.delta.t
+    control.goal.rotX += control.delta.rotX
+    control.goal.rotY += control.delta.rotY
+    control.goal.texX += control.delta.texX
+    control.goal.texY += control.delta.texY
 
-    // はじくように移動
-    control.goal.x += control.delta.x * d
-    control.goal.y += control.delta.y * d
-    control.goal.z += control.delta.z * d
-    control.goal.t += control.delta.t * d
-    control.goal.rotX += control.delta.rotX * d
-    control.goal.rotY += control.delta.rotY * d
-    control.goal.texX += control.delta.texX * d
-    control.goal.texY += control.delta.texY * d
+    // 速度を0にする
+    control.delta.x = 0
+    control.delta.y = 0
+    control.delta.z = 0
+    control.delta.t = 0
+    control.delta.rotX = 0
+    control.delta.rotY = 0
+    control.delta.texX = 0
+    control.delta.texY = 0
 
     // テクスチャの限界
     if(control.current.texX < 0) control.current.texX = 0
@@ -278,27 +282,30 @@ const shader = {}
 shader.texture = new Shader('texture', renderer)
 shader.sprite = new Shader('sprite', renderer)
 
-const model = {}
-model.bg3d = new Model(renderer)
-model.bg2d = new Model(renderer)
-model.point3d = new Model(renderer)
-model.point2d = new Model(renderer)
-model.originalPoint = new Model(renderer)
-model.strongPoint = new Model(renderer)
-model.texture = new Model(renderer)
-model.center = new Model(renderer)
-model.object = new Model(renderer)
+const model = {
+    disc3d: new Model(renderer),
+    bg3d: new Model(renderer),
+    bg2d: new Model(renderer),
+    point3d: new Model(renderer),
+    point2d: new Model(renderer),
+    originalPoint: new Model(renderer),
+    strongPoint: new Model(renderer),
+    texture: new Model(renderer),
+    center: new Model(renderer),
+    object: new Model(renderer),
+}
 
-const matrix = {}
-matrix.bg3d = new Matrix()
-matrix.bg2d = new Matrix()
-matrix.point3d = new Matrix()
-matrix.point2d = new Matrix()
-matrix.originalPoint = new Matrix()
-matrix.strongPoint = new Matrix()
-matrix.texture = new Matrix()
-matrix.center = new Matrix()
-matrix.object = new Matrix()
+const matrix = {
+    bg3d: new Matrix(),
+    bg2d: new Matrix(),
+    point3d: new Matrix(),
+    point2d: new Matrix(),
+    originalPoint: new Matrix(),
+    strongPoint: new Matrix(),
+    texture: new Matrix(),
+    center: new Matrix(),
+    object: new Matrix(),
+}
 
 // クラス追加
 const addClass = (element, className) =>
@@ -350,20 +357,16 @@ const updateSurfaceList = () =>
         for(let m = 0; m < i.length; m++)
             if(i[m] === vl[n]) sl.push(Math.floor(m / 3))
                 
+    // それらの三角形をリスト
     for(let n = 0; n < sl.length; n++)
     {
         const s = sl[n]
-        /*
-        const i0 = i[s * 3 + 0]
-        const i1 = i[s * 3 + 1]
-        const i2 = i[s * 3 + 2]
-        */
         const li = document.createElement('li')
-        li.textContent = n
+        li.textContent = sl[n]
         addClass(li, 'surface')
         for(let j = 0; j < control.surface.selected.length; j++)
         {
-            if(control.surface.selected[j] === n) addClass(li, 'selected')
+            if(control.surface.selected[j] === sl[n]) addClass(li, 'selected')
         }
         li.addEventListener('pointerdown', callback.selectSurface)
         element.surfaceList.append(li)
@@ -475,14 +478,12 @@ const init = () =>
     
     addClass(element.pose3dDiv, 'none')
     addClass(element.pose2dDiv, 'none')
-    addClass(element.param3dDiv, 'none')
     addClass(element.param2dDiv, 'none')
     addClass(element.vertexDiv, 'none')
     addClass(element.surfaceDiv, 'none')
     addClass(element.matrixDiv, 'none')
     addClass(element.texelDiv, 'none')
 
-    removeClass(element.param3dMode, 'selected')
     removeClass(element.param2dMode, 'selected')
     removeClass(element.vertex3dMode, 'selected')
     removeClass(element.vertex2dMode, 'selected')
@@ -565,6 +566,13 @@ const init = () =>
         strage: {
             selected: '',
         },
+        rotate: false,
+        scroll: false,
+        prevPointer:
+        {
+            normalizedX: 0,
+            normalizedY: 0,
+        },
     }
 
     // 3Dモデルのオブジェクト
@@ -596,6 +604,7 @@ const init = () =>
     }
     element.name.value = object.name
     element.nameStrage.value = object.name
+    element.nameFile.value = object.name
 
     // テクセル置きなどの状態をリセット
     resetState()
@@ -607,15 +616,67 @@ const init = () =>
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
     renderer.clear(0.5, 0.5, 0.5, 1)
 
+    // 円盤の背景の板
+    model.disc3d.shader = shader.texture
+
+    model.disc3d.position = 
+    [
+        -1, -1, 1,
+         1, -1, 1,
+        -1,  1, 1,
+         1,  1, 1,
+    ]
+    model.disc3d.color =
+    [
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1,
+    ]
+    model.disc3d.coordinate = 
+    [
+        0, 0,
+        1, 0,
+        0, 1,
+        1, 1,
+    ]
+    model.disc3d.index = 
+    [
+        0, 1, 2,
+        3, 2, 1,
+    ]
+    // 円盤を描く
+    const discTextureData = []
+    const dw = 512, dh = 512
+    for(let y = 0; y < dw; y++)
+        for(let x = 0; x < dh; x++)
+        {
+            discTextureData[(y * dw + x) * 4 + 0] = 0x00
+            discTextureData[(y * dw + x) * 4 + 1] = 0x00
+            discTextureData[(y * dw + x) * 4 + 2] = 0x00
+            discTextureData[(y * dw + x) * 4 + 3] = 0x11
+            const r = (x - dw / 2) * (x - dw / 2) + (y - dh / 2) * (y - dh / 2)
+            const p = (dw / 2 * 6 / 8) * (dw / 2 * 6 / 8)
+            const q = (dw / 2 * 2 / 8) * (dw / 2 * 2 / 8)
+            if(r < p) discTextureData[(y * dw + x) * 4 + 3] = 0x00
+            if(r < q) discTextureData[(y * dw + x) * 4 + 3] = 0x11
+        }
+    model.disc3d.texture = 
+    {
+        width: dw,
+        height: dh,
+        data: discTextureData,
+    }
+
     // 3d背景の板
     model.bg3d.shader = shader.texture
 
     model.bg3d.position = 
     [
-        -4, -4, 1,
-         4, -4, 1,
-        -4,  4, 1,
-         4,  4, 1,
+        -4, -4, 0.8,
+         4, -4, 0.8,
+        -4,  4, 0.8,
+         4,  4, 0.8,
     ]
     model.bg3d.color =
     [
@@ -643,10 +704,10 @@ const init = () =>
     for(let y = 0; y < bg3w; y++)
         for(let x = 0; x < bg3h; x++)
         {
-            background3dTextureData[(y * bg3w + x) * 4 + 0] = 0x88
-            background3dTextureData[(y * bg3w + x) * 4 + 1] = 0x88
-            background3dTextureData[(y * bg3w + x) * 4 + 2] = 0x88
-            background3dTextureData[(y * bg3w + x) * 4 + 3] = 0xFF
+            background3dTextureData[(y * bg3w + x) * 4 + 0] = 0x00
+            background3dTextureData[(y * bg3w + x) * 4 + 1] = 0x00
+            background3dTextureData[(y * bg3w + x) * 4 + 2] = 0x00
+            background3dTextureData[(y * bg3w + x) * 4 + 3] = 0x00
             const p = 1
             if(
                 (bg3w - p <= x || x < p) &&
@@ -656,6 +717,7 @@ const init = () =>
                 background3dTextureData[(y * bg3w + x) * 4 + 0] = 0x66
                 background3dTextureData[(y * bg3w + x) * 4 + 1] = 0x66
                 background3dTextureData[(y * bg3w + x) * 4 + 2] = 0x66
+                background3dTextureData[(y * bg3w + x) * 4 + 3] = 0xFF
             }
         }
         model.bg3d.texture = 
@@ -810,7 +872,7 @@ const init = () =>
         data: pointTextureData,
     }
     model.point3d.matrix = matrix.point3d
-    model.point3d.pointSize = 64 / control.grid
+    model.point3d.pointSize = 16
 
     // 2Dモデルの点群
     model.point2d.shader = shader.sprite
@@ -851,7 +913,7 @@ const init = () =>
         data: point2dTextureData,
     }
     model.point2d.matrix = matrix.point2d
-    model.point2d.pointSize = 64 / control.grid
+    model.point2d.pointSize = 16
 
     // 強調する点のモデル
     model.strongPoint.shader = shader.sprite
@@ -1277,7 +1339,7 @@ const animationFrame = (timestamp) =>
     prevTimestamp = timestamp
 
     // カーソル更新
-    updateCursor(deltaTime)
+    updateCursor()
 
     // 単色で塗りつぶす
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
@@ -1300,20 +1362,16 @@ const animationFrame = (timestamp) =>
         let mz = control.current.z
         while(2 < mz) mz -= 2
         while(mz < -2) mz += 2
-        let rf =
-            (
-                control.delta.rotX ||
-                control.delta.rotY ||
-                control.goal.rotX !== control.current.rotX ||
-                control.goal.rotY !== control.current.rotY
-            )
         let rx = control.current.rotX
         let ry = control.current.rotY
         while(3 < ry) ry -= 4
         while(ry < 0) ry += 4
 
+        // 背景の円盤を描く
+        model.disc3d.drawTriangles()
+
         // カメラが回っていなければ
-        if(!rf)
+        if(!control.rotate)
         {
             // 小さな点の背景を描画
             matrix.bg3d.initialize()
@@ -1348,7 +1406,7 @@ const animationFrame = (timestamp) =>
         matrix.object.parallel(-1, 1, -1, 1, 1, 100)
 
         // カメラが回っている
-        if(rf)
+        if(control.current.scale !== 1)
         {
             // すべて50だけ前進させて映るようにする
             matrix.originalPoint.translateZ(50)
@@ -1379,6 +1437,9 @@ const animationFrame = (timestamp) =>
         model.strongPoint.drawPoints()
 
         // 原点を描く
+        matrix.originalPoint.scaleX(control.current.scale)
+        matrix.originalPoint.scaleY(control.current.scale)
+        matrix.originalPoint.scaleZ(control.current.scale)
         matrix.originalPoint.rotateX(rx * Math.PI / 2)
         matrix.originalPoint.rotateY(ry * Math.PI / 2)
         matrix.originalPoint.translateX(halfRound(-cx, cvw))
@@ -1466,6 +1527,7 @@ const update = () =>
 {
     const n = object.name
     element.nameStrage.value = n
+    element.nameFile.value = n
     element.name.value = n
 
     updateVertexList()
@@ -1488,8 +1550,9 @@ const callback =
         object.name = n
 
         // 普段のとストレージ画面の名前
-        if(e.target.id === 'name') element.nameStrage.value = n
-        if(e.target.id === 'name-strage') element.name.value = n
+        if(e.target !== element.nameStrage) element.nameStrage.value = n
+        if(e.target !== element.nameFile) element.nameFile.value = n
+        if(e.target !== element.name) element.name.value = n
     },
     // インポートファイルのロード完了
     fileImported: (e) =>
@@ -1498,6 +1561,8 @@ const callback =
         object = JSON.parse(json)
 
         update()
+
+        addClass(element.fileDiv, 'none')
     },
     // インポートファイルの中身を取得後に処理を行う
     fileInput: (e) =>
@@ -1519,6 +1584,7 @@ const callback =
         inputFile.addEventListener('change', callback.fileInput)
         inputFile.click()
     },
+    // ファイルに出力
     export: (e) =>
     {
         e.stopPropagation()
@@ -1537,6 +1603,18 @@ const callback =
 
         // クリックした事にしてダウンロード
         a.click()
+
+        addClass(element.fileDiv, 'none')
+    },
+    // ファイルをキャンセル
+    cancelFile: (e) =>
+    {
+        addClass(element.fileDiv, 'none')
+    },
+    // ファイル画面を開く
+    openFile: (e) =>
+    {
+        removeClass(element.fileDiv, 'none')
     },
     // ストレージをキャンセル
     cancelButton: (e) =>
@@ -1573,18 +1651,6 @@ const callback =
 
         update()
     },
-    // ストレージのリストから選択した
-    selectStrage: (e) =>
-    {
-        const s = document.querySelectorAll('.strage')
-        for(let v of s) removeClass(v, 'selected')
-        addClass(e.target, 'selected')
-        const n = e.target.textContent
-        control.strage.selected = n
-        object.name = n
-        element.name.value = n
-        element.nameStrage.value = n
-    },
     // ストレージ画面を開く
     openStrage: (e) =>
     {
@@ -1614,6 +1680,19 @@ const callback =
         localStorage.setItem(dataListName, listJson)
 
         updateStrageList()
+    },
+    // ストレージのリストから選択した
+    selectStrage: (e) =>
+    {
+        const s = document.querySelectorAll('.strage')
+        for(let v of s) removeClass(v, 'selected')
+        addClass(e.target, 'selected')
+        const n = e.target.textContent
+        control.strage.selected = n
+        object.name = n
+        element.name.value = n
+        element.nameStrage.value = n
+        element.nameFile.value = n
     },
     apply3d: (e) =>
     {
@@ -1784,112 +1863,7 @@ const callback =
 
         resetState()
     },
-    touchSlider: (e) =>
-    {
-        e.preventDefault()
-
-        // 左クリックされていない時は返す
-        if(
-            e.type !== 'touchstart' &&
-            e.type !== 'touchmove' &&
-            !(e.buttons & 1)
-        ) return
-    
-        let innerElem, innerRect, outerRect
-    
-        if(e.target.id === 'depth' || e.target.id === 'depth-bar')
-        {
-            innerElem = element.depth
-            innerRect = element.depth.getBoundingClientRect()
-            outerRect = element.depthBar.getBoundingClientRect()
-        }
-        else if(e.target.id === 'time' || e.target.id === 'time-bar')
-        {
-            innerElem = element.time
-            innerRect = element.time.getBoundingClientRect()
-            outerRect = element.timeBar.getBoundingClientRect()
-        }
-        else return
-    
-        let y = -1
-        if(e.clientY != undefined) y = e.clientY
-        if(e.targetTouches != undefined) y = e.targetTouches[0].clientY
-
-        let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
-    
-        // 大きさ制限
-        if(ny < -1) ny = -1
-        if(ny > 1) ny = 1
-
-        // 1グリッドの大きさ
-        const g = 1 / control.grid * 8
-
-        if(innerElem.id === 'depth')
-        {
-            // 回転の状態によって動かす方向が変わる
-            let rx = Math.round(control.current.rotX)
-            let ry = Math.round(control.current.rotY)
-            while(ry < 0) ry += 4
-            while(ry > 3) ry -= 4
-            const z = -ny * g
-            if(rx === 0 && ry === 0) { control.delta.z = z }
-            if(rx === 0 && ry === 1) { control.delta.x = -z }
-            if(rx === 0 && ry === 2) { control.delta.z = -z }
-            if(rx === 0 && ry === 3) { control.delta.x = z }
-            if(rx === 1) { control.delta.y = z }
-            if(rx === -1) { control.delta.y = -z }
-        }
-        if(innerElem.id === 'time')
-        {
-            control.delta.t = -ny / 2
-        }
-    
-        innerElem.style.top = (25 + ny * 25) + '%'
-    },
-    releaseSlider: (e) =>
-    {
-        e.preventDefault()
-        
-        if(
-            e.type !== 'touchend' &&
-            e.type !== 'touchcancel' &&
-            e.type !== 'mouseup' &&
-            e.type !== 'mousecancel' &&
-            !(e.buttons & 1)
-        ) return
-
-        let innerElem
-    
-        if(e.target.id === 'depth' || e.target.id === 'depth-bar')
-        {
-            innerElem = element.depth
-        }
-        else if(e.target.id === 'time' || e.target.id === 'time-bar')
-        {
-            innerElem = element.time
-        }
-        else return
-        
-        if(innerElem.id === 'depth')
-        {
-            control.delta.x = 0
-            control.delta.y = 0
-            control.delta.z = 0
-            const w = control.grid
-            const h = control.grid
-            const d = control.grid
-            control.goal.x = Math.round(control.current.x * w) / w
-            control.goal.y = Math.round(control.current.y * h) / h
-            control.goal.z = Math.round(control.current.z * d) / d
-        }
-        if(innerElem.id === 'time')
-        {
-            control.delta.t = 0
-        }
-    
-        innerElem.style.top = '25%'
-    },
-    touchPad: (e) =>
+    touchCanvas: (e) =>
     {
         e.preventDefault()
 
@@ -1899,21 +1873,8 @@ const callback =
             !(e.buttons & 1)
         ) return
 
-        let innerElem, innerRect, outerRect
-    
-        if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
-        {
-            innerElem = element.scroll
-            innerRect = element.scroll.getBoundingClientRect()
-            outerRect = element.scrollPad.getBoundingClientRect()
-        }
-        else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
-        {
-            innerElem = element.rotate
-            innerRect = element.rotate.getBoundingClientRect()
-            outerRect = element.rotatePad.getBoundingClientRect()
-        }
-        else return
+        const t = e.target
+        const rect = t.getBoundingClientRect()
     
         let x = -1, y = -1
         if(e.clientX != undefined) x = e.clientX
@@ -1921,73 +1882,95 @@ const callback =
         if(e.clientY != undefined) y = e.clientY
         if(e.targetTouches != undefined) y = e.targetTouches[0].clientY
 
-        let nx = (x - outerRect.left - innerRect.width / 2) / outerRect.width * 4 - 1
-        let ny = (y - outerRect.top - innerRect.height / 2) / outerRect.height * 4 - 1
-    
-        // 丸い範囲を出なくする
-        const s = Math.sqrt(nx * nx + ny * ny)
-        if(s > 1)
+        // ノーマライズされたポインター座標
+        const nx = (x - rect.left - rect.width / 2) / rect.width * 2
+        const ny = (y - rect.top - rect.height / 2) / rect.height * 2
+
+        // 範囲によってスクロールか回転かを判断
+        const r = nx * nx + ny * ny
+        const rot = 3 / 4
+        const scr = 1 / 4
+        if(r > rot * rot || r < scr * scr)
         {
-            nx /= s
-            ny /= s
+            control.scroll = true
+        }
+        else
+        {
+            control.rotate = true
+            control.goal.scale = 1 / 2
         }
 
-        // 縦横に動かしやすくする為に0にする範囲
-        const m = 0.2
-        if(-m < nx && nx < m) nx = 0
-        if(-m < ny && ny < m) ny = 0
+        control.prevPointer.normalizedX = nx
+        control.prevPointer.normalizedY = ny
+    },
+    slideCanvas: (e) =>
+    {
+        e.preventDefault()
 
-        // グリッドの大きさによって速さを変える
-        const g = 1 / control.grid * 8
-        const tw = 1 / object.texture.width * 8
-        const th = 1 / object.texture.height * 8
-        const d = mode.name === 'vertex2d'? 1 / 2 : 1
+        if(
+            e.type !== 'touchstart' &&
+            e.type !== 'touchmove' &&
+            !(e.buttons & 1)
+        ) return
 
-        // 速度
-        if(mode.dimension === 3 && innerElem.id === 'scroll')
+        const t = e.target
+        const rect = t.getBoundingClientRect()
+    
+        let x = -1, y = -1
+        if(e.clientX != undefined) x = e.clientX
+        if(e.targetTouches != undefined) x = e.targetTouches[0].clientX
+        if(e.clientY != undefined) y = e.clientY
+        if(e.targetTouches != undefined) y = e.targetTouches[0].clientY
+
+        // ノーマライズされたポインター座標
+        const nx =  (x - rect.left - rect.width / 2) / rect.width * 2
+        const ny = (y - rect.top - rect.height / 2) / rect.height * 2
+
+        // 前回のポインターとの差
+        const dx = nx - control.prevPointer.normalizedX
+        const dy = ny - control.prevPointer.normalizedY
+
+        // 3dスクロール
+        if(mode.dimension === 3 && control.scroll)
         {
             // 回転の状態によって動かす方向が変わる
             let rx = Math.round(control.current.rotX)
             let ry = Math.round(control.current.rotY)
             while(ry < 0) ry += 4
             while(ry > 3) ry -= 4
-            const x = nx * g
-            const y = -ny * g
-            if(rx === 0 && ry === 0) { control.delta.x = x ; control.delta.y = y }
-            if(rx === 0 && ry === 1) { control.delta.z = x ; control.delta.y = y }
-            if(rx === 0 && ry === 2) { control.delta.x = -x ; control.delta.y = y }
-            if(rx === 0 && ry === 3) { control.delta.z = -x ; control.delta.y = y }
-            if(rx === 1 && ry === 0) { control.delta.x = x ; control.delta.z = -y }
-            if(rx === 1 && ry === 1) { control.delta.z = x ; control.delta.x = y }
-            if(rx === 1 && ry === 2) { control.delta.x = -x ; control.delta.z = y }
-            if(rx === 1 && ry === 3) { control.delta.z = -x ; control.delta.x = -y }
-            if(rx === -1 && ry === 0) { control.delta.x = x ; control.delta.z = y }
-            if(rx === -1 && ry === 1) { control.delta.z = x ; control.delta.x = -y }
-            if(rx === -1 && ry === 2) { control.delta.x = -x ; control.delta.z = -y }
-            if(rx === -1 && ry === 3) { control.delta.z = -x ; control.delta.x = y }
+            const x = -dx
+            const y = dy
+            if(rx === 0 && ry === 0) { control.delta.x += x ; control.delta.y += y }
+            if(rx === 0 && ry === 1) { control.delta.z += x ; control.delta.y += y }
+            if(rx === 0 && ry === 2) { control.delta.x += -x ; control.delta.y += y }
+            if(rx === 0 && ry === 3) { control.delta.z += -x ; control.delta.y += y }
+            if(rx === 1 && ry === 0) { control.delta.x += x ; control.delta.z += -y }
+            if(rx === 1 && ry === 1) { control.delta.z += x ; control.delta.x += y }
+            if(rx === 1 && ry === 2) { control.delta.x += -x ; control.delta.z += y }
+            if(rx === 1 && ry === 3) { control.delta.z += -x ; control.delta.x += -y }
+            if(rx === -1 && ry === 0) { control.delta.x += x ; control.delta.z += y }
+            if(rx === -1 && ry === 1) { control.delta.z += x ; control.delta.x += -y }
+            if(rx === -1 && ry === 2) { control.delta.x += -x ; control.delta.z += -y }
+            if(rx === -1 && ry === 3) { control.delta.z += -x ; control.delta.x += y }
         }
-        if(mode.dimension === 3 && innerElem.id === 'rotate')
+        // 3d回転
+        if(mode.dimension === 3 && control.rotate)
         {
-            control.delta.rotX = ny
-            control.delta.rotY = nx
-            control.goal.scale = 1 / 2
+            control.delta.rotX += -dy
+            control.delta.rotY += -dx
         }
-        if(mode.dimension === 2 && innerElem.id === 'scroll')
+        // 2dスクロール
+        if(mode.dimension === 2)
         {
-            control.delta.texX = nx * tw * d
-            control.delta.texY = -ny * th * d
-        }
-        if(mode.dimension === 2 && innerElem.id === 'rotate')
-        {
-            control.delta.texX = nx * 4 * tw * d
-            control.delta.texY = -ny * 4 * th * d
+            control.delta.texX += -dx / 2
+            control.delta.texY += dy / 2
         }
 
-        // パッドの位置
-        innerElem.style.left = (25 + nx * 25) + '%'
-        innerElem.style.top = (25 + ny * 25) + '%'
+        // 前回のポインター位置を記憶
+        control.prevPointer.normalizedX = nx
+        control.prevPointer.normalizedY = ny
     },
-    releasePad: (e) =>
+    releaseCanvas: (e) =>
     {
         e.preventDefault()
         
@@ -1999,20 +1982,10 @@ const callback =
             !(e.buttons & 1)
         ) return
     
-        let innerElem
-    
-        if(e.target.id === 'scroll' || e.target.id === 'scroll-pad')
-        {
-            innerElem = element.scroll
-        }
-        else if(e.target.id === 'rotate' || e.target.id === 'rotate-pad')
-        {
-            innerElem = element.rotate
-        }
-        else return
+        // const t = e.target
 
         // 停止して丸める
-        if(mode.dimension === 3 && innerElem.id === 'scroll')
+        if(mode.dimension === 3 && control.scroll)
         {
             control.delta.x = 0
             control.delta.y = 0
@@ -2023,14 +1996,16 @@ const callback =
             control.goal.x = Math.round(control.current.x * w) / w
             control.goal.y = Math.round(control.current.y * h) / h
             control.goal.z = Math.round(control.current.z * d) / d
+            control.scroll = false
         }
-        if(mode.dimension === 3 && innerElem.id === 'rotate')
+        if(mode.dimension === 3 && control.rotate)
         {
             control.delta.rotX = 0
             control.delta.rotY = 0
             control.goal.rotX = Math.round(control.current.rotX)
             control.goal.rotY = Math.round(control.current.rotY)
             control.goal.scale = 1
+            control.rotate = false
         }
         // 2dモード
         if(mode.dimension === 2 && mode.name !== 'vertex2d')
@@ -2041,6 +2016,7 @@ const callback =
             const h = object.texture.height / 2
             control.goal.texX = (Math.floor(control.current.texX * w * 2) + 0.5) / w / 2
             control.goal.texY = (Math.floor(control.current.texY * h * 2) + 0.5) / h / 2
+            control.scroll = false
         }
         // 頂点2dモードの時はグリッドの半分の位置に停止できる
         if(mode.dimension === 2 && mode.name === 'vertex2d')
@@ -2051,17 +2027,20 @@ const callback =
             const h = object.texture.height
             control.goal.texX = Math.round(control.current.texX * w * 2) / w / 2
             control.goal.texY = Math.round(control.current.texY * h * 2) / h / 2
+            control.scroll = false
         }
 
+        // 速度を0にする
         control.delta.x = 0
         control.delta.y = 0
         control.delta.z = 0
         control.delta.t = 0
         control.delta.texX = 0
         control.delta.texY = 0
-    
-        innerElem.style.left = '25%'
-        innerElem.style.top = '25%'
+
+        // 前回のポインター位置を記憶
+        control.prevPointer.normalizedX = 0
+        control.prevPointer.normalizedY = 0
     },
     selectVertex: (e) =>
     {
@@ -2260,27 +2239,6 @@ const callback =
             }
             control.surface.selected = []
 
-            /*
-            頂点ごと消すなよ…
-            const l = s.length
-            for(let n = 0; n < l; n++)
-            {
-                const i = s[0]
-                let i0 = object.index[i * 3 + 0]
-                let i1 = object.index[i * 3 + 1]
-                let i2 = object.index[i * 3 + 2]
-
-                // 1つずつ消す時番号がずれるのでそれを考慮
-                if(i1 > i0) i1--
-                if(i2 > i0) i2--
-                if(i2 > i1) i2--
-                
-                deleteVertex(i0)
-                deleteVertex(i1)
-                deleteVertex(i2)
-            }
-            */
-
             updateVertexList()
             updateSurfaceList()
             updateModel()
@@ -2308,7 +2266,14 @@ const callback =
         control.vertex.grab = !control.vertex.grab
 
         if(control.vertex.grab) addClass(element.grab, 'selected')
-        else removeClass(element.grab, 'selected')
+        else
+        {
+            removeClass(element.grab, 'selected')
+            control.vertex.selected = []
+            control.surface.selected = []
+            updateVertexList()
+            updateSurfaceList()
+        }
     },
     vertexColor: (e) =>
     {
@@ -2413,16 +2378,29 @@ const callback =
     },
 }
 
-// ファイル系のイベント
+// キャンバスを押した時のイベント
+element.canvas.addEventListener('mousedown', callback.touchCanvas)
+element.canvas.addEventListener('touchstart', callback.touchCanvas)
+element.canvas.addEventListener('mousemove', callback.slideCanvas)
+element.canvas.addEventListener('touchmove', callback.slideCanvas)
+element.canvas.addEventListener('mouseup', callback.releaseCanvas)
+element.canvas.addEventListener('mouseout', callback.releaseCanvas)
+element.canvas.addEventListener('touchend', callback.releaseCanvas)
+// ストレージ系のイベント
 element.name.addEventListener('input', callback.name)
 element.nameStrage.addEventListener('input', callback.name)
-element.export.addEventListener('click', callback.export)
-element.import.addEventListener('click', callback.import)
-element.openStrage.addEventListener('click', callback.openStrage)
-element.saveButton.addEventListener('click', callback.saveButton)
+element.nameFile.addEventListener('input', callback.name)
 element.loadButton.addEventListener('click', callback.loadButton)
 element.deleteButton.addEventListener('click', callback.deleteButton)
 element.cancelButton.addEventListener('click', callback.cancelButton)
+element.strageForm.addEventListener('submit', callback.saveButton)
+// ファイル系イベント
+element.cancelFile.addEventListener('click', callback.cancelFile)
+element.fileForm.addEventListener('submit', callback.export)
+element.import.addEventListener('click', callback.import)
+/* ストレージとファイルの画面を開くボタン */
+element.openStrage.addEventListener('click', callback.openStrage)
+element.openFile.addEventListener('click', callback.openFile)
 // アプリアップデートボタン
 element.update.addEventListener('click', callback.update)
 // パラメータ適用
@@ -2438,82 +2416,6 @@ element.surfaceMode.addEventListener('pointerdown', callback.changeMode)
 //element.matrixMode.addEventListener('pointerdown', callback.changeMode)
 //element.pose3dMode.addEventListener('pointerdown', callback.changeMode)
 //element.pose2dMode.addEventListener('pointerdown', callback.changeMode)
-// バーを押したのイベント
-element.depthBar.addEventListener('mousedown', callback.touchSlider)
-element.depth.addEventListener('mousedown', callback.touchSlider)
-element.timeBar.addEventListener('mousedown', callback.touchSlider)
-element.time.addEventListener('mousedown', callback.touchSlider)
-element.depthBar.addEventListener('mousemove', callback.touchSlider)
-element.depth.addEventListener('mousemove', callback.touchSlider)
-element.timeBar.addEventListener('mousemove', callback.touchSlider)
-element.time.addEventListener('mousemove', callback.touchSlider)
-element.depthBar.addEventListener('touchstart', callback.touchSlider, { passive: true })
-element.depth.addEventListener('touchstart', callback.touchSlider, { passive: true })
-element.timeBar.addEventListener('touchstart', callback.touchSlider, { passive: true })
-element.time.addEventListener('touchstart', callback.touchSlider, { passive: true })
-element.depthBar.addEventListener('touchmove', callback.touchSlider, { passive: true })
-element.depth.addEventListener('touchmove', callback.touchSlider, { passive: true })
-element.timeBar.addEventListener('touchmove', callback.touchSlider, { passive: true })
-element.time.addEventListener('touchmove', callback.touchSlider, { passive: true })
-// バーを離したのイベント
-element.depthBar.addEventListener('mouseup', callback.releaseSlider)
-element.depth.addEventListener('mouseup', callback.releaseSlider)
-element.timeBar.addEventListener('mouseup', callback.releaseSlider)
-element.time.addEventListener('mouseup', callback.releaseSlider)
-element.depthBar.addEventListener('mouseleave', callback.releaseSlider)
-element.depth.addEventListener('mouseleave', callback.releaseSlider)
-element.timeBar.addEventListener('mouseleave', callback.releaseSlider)
-element.time.addEventListener('mouseleave', callback.releaseSlider)
-element.depthBar.addEventListener('mousecancel', callback.releaseSlider)
-element.depth.addEventListener('mousecancel', callback.releaseSlider)
-element.timeBar.addEventListener('mousecancel', callback.releaseSlider)
-element.time.addEventListener('mousecancel', callback.releaseSlider)
-element.depthBar.addEventListener('touchend', callback.releaseSlider)
-element.depth.addEventListener('touchend', callback.releaseSlider)
-element.timeBar.addEventListener('touchend', callback.releaseSlider)
-element.time.addEventListener('touchend', callback.releaseSlider)
-element.depthBar.addEventListener('touchcancel', callback.releaseSlider)
-element.depth.addEventListener('touchcancel', callback.releaseSlider)
-element.timeBar.addEventListener('touchcancel', callback.releaseSlider)
-element.time.addEventListener('touchcancel', callback.releaseSlider)
-// パッドを押したのイベント
-element.scrollPad.addEventListener('mousedown', callback.touchPad)
-element.scroll.addEventListener('mousedown', callback.touchPad)
-element.rotatePad.addEventListener('mousedown', callback.touchPad)
-element.rotate.addEventListener('mousedown', callback.touchPad)
-element.scrollPad.addEventListener('mousemove', callback.touchPad)
-element.scroll.addEventListener('mousemove', callback.touchPad)
-element.rotatePad.addEventListener('mousemove', callback.touchPad)
-element.rotate.addEventListener('mousemove', callback.touchPad)
-element.scrollPad.addEventListener('touchstart', callback.touchPad, { passive: true })
-element.scroll.addEventListener('touchstart', callback.touchPad, { passive: true })
-element.rotatePad.addEventListener('touchstart', callback.touchPad, { passive: true })
-element.rotate.addEventListener('touchstart', callback.touchPad, { passive: true })
-element.scrollPad.addEventListener('touchmove', callback.touchPad, { passive: true })
-element.scroll.addEventListener('touchmove', callback.touchPad, { passive: true })
-element.rotatePad.addEventListener('touchmove', callback.touchPad, { passive: true })
-element.rotate.addEventListener('touchmove', callback.touchPad, { passive: true })
-// パッドを離したのイベント
-element.scrollPad.addEventListener('mouseup', callback.releasePad)
-element.scroll.addEventListener('mouseup', callback.releasePad)
-element.rotatePad.addEventListener('mouseup', callback.releasePad)
-element.rotate.addEventListener('mouseup', callback.releasePad)
-element.scrollPad.addEventListener('mouseleave', callback.releasePad)
-element.scroll.addEventListener('mouseleave', callback.releasePad)
-element.rotatePad.addEventListener('mouseleave', callback.releasePad)
-element.rotate.addEventListener('mouseleave', callback.releasePad)
-element.scrollPad.addEventListener('mousecancel', callback.releasePad)
-element.scroll.addEventListener('mousecancel', callback.releasePad)
-element.rotatePad.addEventListener('mousecancel', callback.releasePad)
-element.rotate.addEventListener('mousecancel', callback.releasePad)
-element.scrollPad.addEventListener('touchend', callback.releasePad)
-element.scroll.addEventListener('touchend', callback.releasePad)
-element.rotatePad.addEventListener('touchend', callback.releasePad)
-element.rotate.addEventListener('touchend', callback.releasePad)
-element.scrollPad.addEventListener('touchcancel', callback.releasePad)
-element.scroll.addEventListener('touchcancel', callback.releasePad)
-element.rotatePad.addEventListener('touchcancel', callback.releasePad)
-element.rotate.addEventListener('touchcancel', callback.releasePad)
 // 編集用ボタンを押した時のイベント
 element.all.addEventListener('pointerdown', callback.all)
 element.put.addEventListener('pointerdown', callback.put)

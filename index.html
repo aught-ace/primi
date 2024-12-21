@@ -16,10 +16,10 @@
             <div id="name-div">
                 <input id="name" value="" autocomplete="on" type="text">
             </div>
-            <div id="file-div"><input
+            <div id="save-div">
+                <input
                     id="open-strage" value="Strage" type="button"><input
-                    id="export" value="Export" type="button"><input
-                    id="import" value="Import" type="button">
+                    id="open-file" value="File" type="button">
             </div>
             <div id="update-div">
                 <img src="icon.png" id="update">
@@ -52,26 +52,13 @@
             <div id="texture-x">tx: 0</div>
             <div id="texture-y">ty: 0</div>
 
-            <div id="all" class="third-button disabled">All</div>
-            <div id="up" class="second-button disabled">Up</div>
-            <div id="remove" class="first-button disabled">Rem</div>
+            <div id="all" class="edit-button disabled">All</div>
+            <div id="up" class="edit-button disabled">Up</div>
+            <div id="remove" class="edit-button disabled">Rem</div>
             
-            <div id="grab" class="third-button disabled">Grab</div>
-            <div id="down" class="second-button disabled">Down</div>
-            <div id="put" class="first-button disabled">Put</div>
-
-            <div id="scroll-pad">
-                <div id="scroll" style="left:25%;top:25%;">Scroll</div>
-            </div>
-            <div id="depth-bar">
-                <div id="depth" style="top:25%;">Depth</div>
-            </div>
-            <div id="time-bar">
-                <div id="time" style="top:25%;">Time</div>
-            </div>
-            <div id="rotate-pad">
-                <div id="rotate" style="left:25%;top:25%;">Rotate</div>
-            </div>
+            <div id="grab" class="edit-button disabled">Grab</div>
+            <div id="down" class="edit-button disabled">Down</div>
+            <div id="put" class="edit-button disabled">Put</div>
 
             <div id="param-3d-div">
                 <form id="param-3d-form" action="">
@@ -142,13 +129,26 @@
             </div>
 
             <div id="strage-div" class="none">
-                <input id="name-strage" value="" autocomplete="on" type="text">
-                <input
-                    value="Cancel" id="cancel-button" type="button"><input
-                    value="Delete" id="delete-button" type="button"><input
-                    value="Save" id="save-button" type="button"><input
-                    value="Load" id="load-button" type="button">
+                <form id="strage-form" action="">
+                    <input
+                        id="name-strage" value="" autocomplete="on" type="text"><input
+                        value="Cancel" id="cancel-button" type="button"><input
+                        value="Load" id="load-button" type="button"><input
+                        value="Save" id="save-button" type="submit"><input
+                        value="Delete" id="delete-button" type="button">
+                </form>
                 <ul id="strage-list"></ul>
+            </div>
+
+            <div id="file-div" class="none">
+                <form id="file-form" action="">
+                    <input
+                        id="name-file" value="" autocomplete="on" type="text">
+                    <input
+                        id="cancel-file" value="Cancel" type="button"><input
+                        id="import" value="Import" type="button"><input
+                        id="export" value="Export .space File" type="submit">
+                </form>
             </div>
         </div>
 
