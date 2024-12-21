@@ -1,6 +1,9 @@
 // 描画モジュールのインポート
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
+// バージョン
+const version = 'N'
+
 // モード
 let mode = 
 {
@@ -91,6 +94,8 @@ const element =
     buttonVertexColorSurface: document.querySelector('#button-vertex-color-surface'),
 }
 
+element.version.textContent = version
+
 // 操作オブジェクト
 let control
 
@@ -140,13 +145,13 @@ const updateCursor = () =>
 
     // テクスチャの限界
     if(control.current.texX < 0) control.current.texX = 0
-    if(1 <= control.current.texX) control.current.texX = 0.9999999
+    if(1 <= control.current.texX) control.current.texX = 0.99999999
     if(control.current.texY < 0) control.current.texY = 0
-    if(1 <= control.current.texY) control.current.texY = 0.9999999
+    if(1 <= control.current.texY) control.current.texY = 0.99999999
     if(control.goal.texX < 0) control.goal.texX = 0
-    if(1 <= control.goal.texX) control.goal.texX = 0.9999999
+    if(1 <= control.goal.texX) control.goal.texX = 0.99999999
     if(control.goal.texY < 0) control.goal.texY = 0
-    if(1 <= control.goal.texY) control.goal.texY = 0.9999999
+    if(1 <= control.goal.texY) control.goal.texY = 0.99999999
 
     // X軸回転の限界
     if(control.current.rotX < -1) control.current.rotX = -1
@@ -503,6 +508,36 @@ const init = () =>
     removeClass(element.param3dDiv, 'none')
     addClass(element.param3dMode, 'selected')
 
+    // 3Dモデルのオブジェクト
+    object =
+    {
+        type: 'space',
+        version: version,
+        name: new Date()
+            .toLocaleDateString(
+                [],
+                {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }
+            ).replaceAll(/[\/: ]/g, ''),
+        position: [],
+        coordinate: [],
+        color: [],
+        index: [],
+        vertexCount: 0,
+        texture:
+        {
+            width: 16,
+            height: 16,
+            data: [],
+        },
+    }
+
     // 操作オブジェクト
     control =
     {
@@ -525,8 +560,8 @@ const init = () =>
             t: 0,
             rotX: 0,
             rotY: 0,
-            texX: 0,
-            texY: 0,
+            texX: 0.5 / object.texture.width,
+            texY: 0.5 / object.texture.height,
             scale: 1,
         },
         goal:
@@ -537,8 +572,8 @@ const init = () =>
             t: 0,
             rotX: 0,
             rotY: 0,
-            texX: 0,
-            texY: 0,
+            texX: 0.5 / object.texture.width,
+            texY: 0.5 / object.texture.height,
             scale: 1,
         },
         update:
@@ -566,11 +601,12 @@ const init = () =>
         {
             put: false,
             remove: false,
-            color: [0, 0, 0, 255],
+            color: [1, 1, 1, 1],
         },
         selectedList: [],
         grid: 7,
-        strage: {
+        strage:
+        {
             selected: '',
         },
         rotate: false,
@@ -580,38 +616,8 @@ const init = () =>
             normalizedX: 0,
             normalizedY: 0,
         },
-        version: element.version.textContent,
     }
 
-    // 3Dモデルのオブジェクト
-    object =
-    {
-        type: 'space',
-        version: control.version,
-        name: new Date()
-            .toLocaleDateString(
-                [],
-                {
-                    year: '2-digit',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                }
-            ).replaceAll(/[\/: ]/g, ''),
-        position: [],
-        coordinate: [],
-        color: [],
-        index: [],
-        vertexCount: 0,
-        texture:
-        {
-            width: 16,
-            height: 16,
-            data: [],
-        },
-    }
     element.name.value = object.name
     element.nameStrage.value = object.name
     element.nameFile.value = object.name
@@ -1242,8 +1248,14 @@ const updateTexture = () =>
 // テクセル描き
 const putTexel = () =>
 {
-    let c
-    if(control.texel.put) c = control.texel.color
+    let c = []
+    if(control.texel.put)
+    {
+        c[0] = control.texel.color[0] * 0xFF
+        c[1] = control.texel.color[1] * 0xFF
+        c[2] = control.texel.color[2] * 0xFF
+        c[3] = control.texel.color[3] * 0xFF
+    }
     else if(control.texel.remove) c = [0, 0, 0, 0]
     else return
     const w = object.texture.width
@@ -1582,7 +1594,7 @@ const callback =
         if(o.type === 'space') object = o
         else return
 
-        object.version = control.version
+        object.version = version
 
         update()
 
@@ -1661,7 +1673,7 @@ const callback =
         const json = localStorage.getItem(s)
 
         object = JSON.parse(json)
-        object.version = control.version
+        object.version = version
 
         addClass(element.strageDiv, 'none')
 
@@ -2289,9 +2301,9 @@ const callback =
             const r = object.color[s * 3 + 0]
             const g = object.color[s * 3 + 1]
             const b = object.color[s * 3 + 2]
-            const hr = (r * 0xFF).toString(16).padStart(2, '0')
-            const hg = (g * 0xFF).toString(16).padStart(2, '0')
-            const hb = (b * 0xFF).toString(16).padStart(2, '0')
+            const hr = (r * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+            const hg = (g * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+            const hb = (b * 0xFF).toString(16).padStart(2, '0').toUpperCase()
 
             const h = '#' + hr + hg + hb
             let c
@@ -2309,7 +2321,7 @@ const callback =
     },
     vertexColor: (e) =>
     {
-        const h = e.target.value
+        const h = e.target.value.toUpperCase()
         const hr = h.substring(1, 3)
         const hg = h.substring(3, 5)
         const hb = h.substring(5, 7)
@@ -2356,15 +2368,14 @@ const callback =
         const x = Math.floor(control.current.texX * object.texture.width)
         const y = Math.floor(control.current.texY * object.texture.height)
         const w = object.texture.width
-        console.log(x,y,w)
-        const r = object.texture.data[(y * w + x) * 4 + 0]
-        const g = object.texture.data[(y * w + x) * 4 + 1]
-        const b = object.texture.data[(y * w + x) * 4 + 2]
-        const a = object.texture.data[(y * w + x) * 4 + 3]
-        const hr = r.toString(16).padStart(2, '0')
-        const hg = g.toString(16).padStart(2, '0')
-        const hb = b.toString(16).padStart(2, '0')
-        const ha = a.toString(16).padStart(2, '0')
+        const r = object.texture.data[(y * w + x) * 4 + 0] / 0xFF
+        const g = object.texture.data[(y * w + x) * 4 + 1] / 0xFF
+        const b = object.texture.data[(y * w + x) * 4 + 2] / 0xFF
+        const a = object.texture.data[(y * w + x) * 4 + 3] / 0xFF
+        const hr = (r * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+        const hg = (g * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+        const hb = (b * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+        const ha = (a * 0xFF).toString(16).padStart(2, '0').toUpperCase()
         control.texel.color[0] = r
         control.texel.color[1] = g
         control.texel.color[2] = b
@@ -2382,7 +2393,7 @@ const callback =
     },
     texelColor: (e) =>
     {
-        const v = element.texelColor.value
+        const v = element.texelColor.value.toUpperCase()
         const hr = parseInt(v.substring(1, 3), 16)
         const hg = parseInt(v.substring(3, 5), 16)
         const hb = parseInt(v.substring(5, 7), 16)
@@ -2396,10 +2407,10 @@ const callback =
         else c = '#FFF'
         element.buttonTexelColor.style.color = c
 
-        control.texel.color[0] = hr
-        control.texel.color[1] = hg
-        control.texel.color[2] = hb
-        control.texel.color[3] = 255
+        control.texel.color[0] = r
+        control.texel.color[1] = g
+        control.texel.color[2] = b
+        control.texel.color[3] = 1
 
         putTexel()
     },
