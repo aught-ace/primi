@@ -13,6 +13,9 @@
     </head>
     <body>
         <div id="editor">
+
+            <div id="version">N</div>
+
             <div id="name-div">
                 <input id="name" value="" autocomplete="on" type="text">
             </div>
@@ -21,7 +24,6 @@
                     id="open-strage" value="Strage" type="button"><input
                     id="open-file" value="File" type="button">
             </div>
-            <div id="update-div">0.0.0</div>
             <div id="mode-3d">
                 <span
                     id="param-3d-mode" class="radio-button selected">3D</span><span
@@ -88,14 +90,14 @@
             </div>
             <div id="vertex-div" class="none">
                 <dl>
+                    <dt>Vertex Color</dt>
+                    <dd>
+                        <label id="button-vertex-color" for="vertex-color" style="background-color:#FFFFFF; color:#000;">#FFFFFF</label>
+                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="vertex-color" class="none" type="color">
+                    </dd>
                     <dt>Vertex List</dt>
                     <dd>
                         <ul id="vertex-list"></ul>
-                    </dd>
-                    <dt>Vertex Color</dt>
-                    <dd>
-                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="button-vertex-color" type="button">
-                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="vertex-color" class="none" type="color">
                     </dd>
                 </dl>
             </div>
@@ -104,6 +106,11 @@
             </div>
             <div id="surface-div" class="none">
                 <dl>
+                    <dt>Vertex Color</dt>
+                    <dd>
+                        <label id="button-vertex-color-surface" for="vertex-color-surface" style="background-color:#FFFFFF; color:#000;">#FFFFFF</label>
+                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="vertex-color-surface" class="none" type="color">
+                    </dd>
                     <dt>Surface List</dt>
                     <dd>
                         <ul id="surface-list"></ul>
@@ -118,7 +125,7 @@
                 <dl>
                     <dt>Texel Color</dt>
                     <dd>
-                        <input value="#000000" style="background-color:#000000; color:#FFF;" id="button-texel-color" type="button">
+                        <label id="button-texel-color" for="texel-color" style="background-color:#000000; color:#FFF;">#000000</label>
                         <input value="#000000" style="background-color:#000000; color:#FFF;" id="texel-color" class="none" type="color">
                     </dd>
                 </dl>

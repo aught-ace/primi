@@ -15,7 +15,7 @@ const dataListName = 'data-list'
 const element =
 {
     canvas: document.querySelector('#canvas'),
-    updateDiv: document.querySelector('#update-div'),
+    version: document.querySelector('#version'),
     param3dDiv: document.querySelector('#param-3d-div'),
     param2dDiv: document.querySelector('#param-2d-div'),
     param3dForm: document.querySelector('#param-3d-form'),
@@ -87,6 +87,8 @@ const element =
     importFile: document.querySelector('#import-file'),
     buttonVertexColor: document.querySelector('#button-vertex-color'),
     buttonTexelColor: document.querySelector('#button-texel-color'),
+    vertexColorSurface: document.querySelector('#vertex-color-surface'),
+    buttonVertexColorSurface: document.querySelector('#button-vertex-color-surface'),
 }
 
 // 操作オブジェクト
@@ -578,7 +580,7 @@ const init = () =>
             normalizedX: 0,
             normalizedY: 0,
         },
-        version: element.updateDiv.textContent,
+        version: element.version.textContent,
     }
 
     // 3Dモデルのオブジェクト
@@ -1242,12 +1244,14 @@ const putTexel = () =>
 {
     let c
     if(control.texel.put) c = control.texel.color
+    else if(control.texel.remove) c = [0, 0, 0, 0]
     else return
     const w = object.texture.width
     const h = object.texture.height
     const x = Math.floor(control.current.texX * w)
     const y = Math.floor(control.current.texY * h)
-    if(
+    if
+    (
         x < 0 || w <= x ||
         y < 0 || h <= y
     ) return
@@ -2143,36 +2147,27 @@ const callback =
     // データを置く
     put: (e) =>
     {
-        // 頂点置き3D
-        if(mode.name === 'vertex3d')
+        // 頂点置き
+        if(
+            mode.name === 'vertex3d' ||
+            mode.name === 'vertex2d'
+        )
         {
             const n = object.vertexCount++
+            const gw = control.grid
+            const gh = control.grid
+            const gd = control.grid
+            const tw = object.texture.width * 2
+            const th = object.texture.height * 2
 
-            object.position[n * 3 + 0] = control.current.x
-            object.position[n * 3 + 1] = control.current.y
-            object.position[n * 3 + 2] = control.current.z
+            object.position[n * 3 + 0] = Math.round(control.current.x * gw) / gw
+            object.position[n * 3 + 1] = Math.round(control.current.y * gh) / gh
+            object.position[n * 3 + 2] = Math.round(control.current.z * gd) / gd
             object.color[n * 3 + 0] = control.vertex.color[0]
             object.color[n * 3 + 1] = control.vertex.color[1]
             object.color[n * 3 + 2] = control.vertex.color[2]
-            object.coordinate[n * 2 + 0] = control.current.texX
-            object.coordinate[n * 2 + 1] = control.current.texY
-
-            updateVertexList()
-            updateModel()
-        }
-        // 頂点置き2D
-        if(mode.name === 'vertex2d')
-        {
-            const n = object.vertexCount++
-
-            object.position[n * 3 + 0] = control.current.x
-            object.position[n * 3 + 1] = control.current.y
-            object.position[n * 3 + 2] = control.current.z
-            object.color[n * 3 + 0] = control.vertex.color[0]
-            object.color[n * 3 + 1] = control.vertex.color[1]
-            object.color[n * 3 + 2] = control.vertex.color[2]
-            object.coordinate[n * 2 + 0] = control.current.texX
-            object.coordinate[n * 2 + 1] = control.current.texY
+            object.coordinate[n * 2 + 0] = Math.round(control.current.texX * tw) / tw
+            object.coordinate[n * 2 + 1] = Math.round(control.current.texY * th) / th
 
             updateVertexList()
             updateModel()
@@ -2251,35 +2246,17 @@ const callback =
             updateSurfaceList()
             updateModel()
         }
-        // テクセルスポイト
+        // テクセル消し
         if(mode.name === 'texel')
         {
-            const x = Math.floor(control.current.texX * object.texture.width)
-            const y = Math.floor(control.current.texY * object.texture.height)
-            const w = object.texture.width
-            console.log(x,y,w)
-            const r = object.texture.data[(y * w + x) * 4 + 0]
-            const g = object.texture.data[(y * w + x) * 4 + 1]
-            const b = object.texture.data[(y * w + x) * 4 + 2]
-            const a = object.texture.data[(y * w + x) * 4 + 3]
-            const hr = r.toString(16).padStart(2, '0')
-            const hg = g.toString(16).padStart(2, '0')
-            const hb = b.toString(16).padStart(2, '0')
-            const ha = a.toString(16).padStart(2, '0')
-            control.texel.color[0] = r
-            control.texel.color[1] = g
-            control.texel.color[2] = b
-            control.texel.color[3] = a
+            control.texel.remove = !control.texel.remove
+            control.texel.put = false
 
-            const h = '#' + hr + hg + hb
-            element.buttonTexelColor.style.backgroundColor = h
-            element.buttonTexelColor.value = h
-            element.texelColor.value = h
-
-            let c
-            if(r + g + b > 3 / 2) c = '#000'
-            else c = '#FFF'
-            element.buttonTexelColor.style.color = c
+            if(control.texel.remove) addClass(element.remove, 'selected')
+            else removeClass(element.remove, 'selected')
+            removeClass(element.put, 'selected')
+            
+            putTexel()
         }
     },
     // つかんで移動ツール
@@ -2305,10 +2282,10 @@ const callback =
     },
     buttonVertexColor: (e) =>
     {
-        // 選択されていたら
-        if(control.vertex.selected.length)
+        // 選択されていたらその色を選択
+        if(control.selectedList.length)
         {
-            const s = control.vertex.selected[control.vertex.selected.length - 1]
+            const s = control.selectedList[control.selectedList.length - 1]
             const r = object.color[s * 3 + 0]
             const g = object.color[s * 3 + 1]
             const b = object.color[s * 3 + 2]
@@ -2317,26 +2294,25 @@ const callback =
             const hb = (b * 0xFF).toString(16).padStart(2, '0')
 
             const h = '#' + hr + hg + hb
-            element.buttonVertexColor.style.backgroundColor = h
-            element.buttonVertexColor.value = h
-            element.vertexColor.value = h
             let c
             if(r + g + b > 3 / 2) c = '#000'
             else c = '#FFF'
+            element.buttonVertexColor.style.backgroundColor = h
+            element.buttonVertexColor.textContent = h
+            element.vertexColor.value = h
             element.buttonVertexColor.style.color = c
+            element.buttonVertexColorSurface.style.backgroundColor = h
+            element.buttonVertexColorSurface.textContent = h
+            element.vertexColorSurface.value = h
+            element.buttonVertexColorSurface.style.color = c
         }
-        element.vertexColor.click()
-    },
-    buttonTexelColor: (e) =>
-    {
-        element.texelColor.click()
     },
     vertexColor: (e) =>
     {
-        const v = element.vertexColor.value
-        const hr = v.substring(1, 3)
-        const hg = v.substring(3, 5)
-        const hb = v.substring(5, 7)
+        const h = e.target.value
+        const hr = h.substring(1, 3)
+        const hg = h.substring(3, 5)
+        const hb = h.substring(5, 7)
         const r = parseInt(hr, 16) / 0xFF
         const g = parseInt(hg, 16) / 0xFF
         const b = parseInt(hb, 16) / 0xFF
@@ -2346,27 +2322,63 @@ const callback =
         control.vertex.color[2] = b
         control.vertex.color[3] = 1
 
-        element.buttonVertexColor.style.backgroundColor = v
-        element.buttonVertexColor.value = v
         let c
         if(r + g + b > 3 / 2) c = '#000'
         else c = '#FFF'
+        element.buttonVertexColor.style.backgroundColor = h
+        element.buttonVertexColor.textContent = h
         element.buttonVertexColor.style.color = c
+        element.vertexColor.value = h
+        element.buttonVertexColorSurface.style.backgroundColor = h
+        element.buttonVertexColorSurface.textContent = h
+        element.vertexColorSurface.value = h
+        element.buttonVertexColorSurface.style.color = c
 
-        // 選択されていたら
-        if(control.vertex.selected.length)
+        // 選択されていたら塗る
+        if(control.selectedList.length)
         {
-            for(let n = 0; n < control.vertex.selected.length; n++)
+            for(let n = 0; n < control.selectedList.length; n++)
             {
-                const v = control.vertex.selected[n]
+                const v = control.selectedList[n]
                 object.color[v * 3 + 0] = control.vertex.color[0]
                 object.color[v * 3 + 1] = control.vertex.color[1]
                 object.color[v * 3 + 2] = control.vertex.color[2]
             }
 
-            control.vertex.selected =[]
+            control.vertex.selected = []
+            control.surface.selected = []
             update()
         }
+    },
+    // スポイト
+    buttonTexelColor: (e) =>
+    {
+        const x = Math.floor(control.current.texX * object.texture.width)
+        const y = Math.floor(control.current.texY * object.texture.height)
+        const w = object.texture.width
+        console.log(x,y,w)
+        const r = object.texture.data[(y * w + x) * 4 + 0]
+        const g = object.texture.data[(y * w + x) * 4 + 1]
+        const b = object.texture.data[(y * w + x) * 4 + 2]
+        const a = object.texture.data[(y * w + x) * 4 + 3]
+        const hr = r.toString(16).padStart(2, '0')
+        const hg = g.toString(16).padStart(2, '0')
+        const hb = b.toString(16).padStart(2, '0')
+        const ha = a.toString(16).padStart(2, '0')
+        control.texel.color[0] = r
+        control.texel.color[1] = g
+        control.texel.color[2] = b
+        control.texel.color[3] = a
+
+        const h = '#' + hr + hg + hb
+        element.buttonTexelColor.style.backgroundColor = h
+        element.buttonTexelColor.textContent = h
+        element.texelColor.value = h
+
+        let c
+        if(r + g + b > 3 / 2) c = '#000'
+        else c = '#FFF'
+        element.buttonTexelColor.style.color = c
     },
     texelColor: (e) =>
     {
@@ -2378,7 +2390,7 @@ const callback =
         const g = hg / 0xFF
         const b = hb / 0xFF
         element.buttonTexelColor.style.backgroundColor = v
-        element.buttonTexelColor.value = v
+        element.buttonTexelColor.textContent = v
         let c
         if(r + g + b > 3 / 2) c = '#000'
         else c = '#FFF'
@@ -2436,7 +2448,7 @@ const callback =
         }
     },
     // このWebアプリを最新版にする
-    updateDiv: (e) =>
+    version: (e) =>
     {
         if ('serviceWorker' in navigator)
             navigator.serviceWorker.getRegistration()
@@ -2482,7 +2494,7 @@ element.importFile.addEventListener('change', callback.importFile)
 element.openStrage.addEventListener('click', callback.openStrage)
 element.openFile.addEventListener('click', callback.openFile)
 // アプリアップデートボタン
-element.updateDiv.addEventListener('click', callback.updateDiv)
+element.version.addEventListener('click', callback.version)
 // パラメータ適用
 element.param3dForm.addEventListener('submit', callback.apply3d)
 element.param2dForm.addEventListener('submit', callback.apply2d)
@@ -2502,9 +2514,11 @@ element.put.addEventListener('click', callback.put)
 element.remove.addEventListener('click', callback.remove)
 element.grab.addEventListener('click', callback.grab)
 // 色選択をした時のイベント
-element.buttonVertexColor.addEventListener('pointerdown', callback.buttonVertexColor)
-element.buttonTexelColor.addEventListener('pointerdown', callback.buttonTexelColor)
+element.buttonVertexColor.addEventListener('click', callback.buttonVertexColor)
+element.buttonVertexColorSurface.addEventListener('click', callback.buttonVertexColor)
+element.buttonTexelColor.addEventListener('click', callback.buttonTexelColor)
 element.vertexColor.addEventListener('change', callback.vertexColor)
+element.vertexColorSurface.addEventListener('change', callback.vertexColor)
 element.texelColor.addEventListener('change', callback.texelColor)
 // 座標の表示を押した時のイベント
 element.positionX.addEventListener('pointerdown', callback.positionReset)
