@@ -15,7 +15,7 @@ const dataListName = 'data-list'
 const element =
 {
     canvas: document.querySelector('#canvas'),
-    update: document.querySelector('#update'),
+    updateDiv: document.querySelector('#update-div'),
     param3dDiv: document.querySelector('#param-3d-div'),
     param2dDiv: document.querySelector('#param-2d-div'),
     param3dForm: document.querySelector('#param-3d-form'),
@@ -85,6 +85,8 @@ const element =
     cancelFile: document.querySelector('#cancel-file'),
     fileDiv: document.querySelector('#file-div'),
     importFile: document.querySelector('#import-file'),
+    buttonVertexColor: document.querySelector('#button-vertex-color'),
+    buttonTexelColor: document.querySelector('#button-texel-color'),
 }
 
 // 操作オブジェクト
@@ -205,7 +207,7 @@ const updateCursor = () =>
         // 2D
         } else if(mode.name === 'vertex2d')
         {
-            if(!control.vertex.selected.length)
+            if(!control.selectedList.length)
             {
                 for(let i = 0; i < object.vertexCount; i++)
                 {
@@ -396,6 +398,7 @@ const updateSurfaceList = () =>
         li.addEventListener('pointerdown', callback.selectSurface)
         element.surfaceList.append(li)
     }
+    updateSelectedList()
 }
     
 // 頂点リスト更新
@@ -405,8 +408,8 @@ const updateVertexList = () =>
     element.vertexListSurface.innerHTML = ''
 
     const s = 1 / control.grid / 2
-    const sw = 1 / object.texture.width / 2
-    const sh = 1 / object.texture.height / 2
+    const sw = 1 / object.texture.width / 4
+    const sh = 1 / object.texture.height / 4
     for(let n = 0; n < object.vertexCount; n++)
     {
         // グリッド範囲内の頂点をリスト表示
@@ -449,6 +452,7 @@ const updateVertexList = () =>
         else
             removeClass(element.all, 'selected')
     }
+    updateSelectedList()
 }
 
 // テクスチャ初期化
@@ -574,11 +578,14 @@ const init = () =>
             normalizedX: 0,
             normalizedY: 0,
         },
+        version: element.updateDiv.textContent,
     }
 
     // 3Dモデルのオブジェクト
     object =
     {
+        type: 'space',
+        version: control.version,
         name: new Date()
             .toLocaleDateString(
                 [],
@@ -612,7 +619,7 @@ const init = () =>
 
     // 頂点リスト更新
     updateVertexList()
-
+    
     // 描いてあるものを消去
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
     renderer.clear(0.5, 0.5, 0.5, 1)
@@ -1235,7 +1242,6 @@ const putTexel = () =>
 {
     let c
     if(control.texel.put) c = control.texel.color
-    else if(control.texel.remove) c = [0, 0, 0, 0]
     else return
     const w = object.texture.width
     const h = object.texture.height
@@ -1371,8 +1377,8 @@ const animationFrame = (timestamp) =>
         // 背景の円盤を描く
         model.disc3d.drawTriangles()
 
-        // カメラが回っていなければ
-        if(!control.rotate)
+        // カメラが回っていなくかつ
+        if(!control.rotate && mode.name !== 'param3d')
         {
             // 小さな点の背景を描画
             matrix.bg3d.initialize()
@@ -1425,28 +1431,31 @@ const animationFrame = (timestamp) =>
             matrix.object.translateZ(1)
         }
 
+        // 「3D」モード以外
+        if(mode.name !== 'param3d')
+        {
+            // 強調する点を描く
+            matrix.strongPoint.scaleX(control.current.scale)
+            matrix.strongPoint.scaleY(control.current.scale)
+            matrix.strongPoint.scaleZ(control.current.scale)
+            matrix.strongPoint.rotateX(rx * Math.PI / 2)
+            matrix.strongPoint.rotateY(ry * Math.PI / 2)
+            matrix.strongPoint.translateX(halfRound(-mx, cvw))
+            matrix.strongPoint.translateY(halfRound(-my, cvh))
+            matrix.strongPoint.translateZ(halfRound(-mz, cvh))
+            model.strongPoint.drawPoints()
 
-        // 強調する点を描く
-        matrix.strongPoint.scaleX(control.current.scale)
-        matrix.strongPoint.scaleY(control.current.scale)
-        matrix.strongPoint.scaleZ(control.current.scale)
-        matrix.strongPoint.rotateX(rx * Math.PI / 2)
-        matrix.strongPoint.rotateY(ry * Math.PI / 2)
-        matrix.strongPoint.translateX(halfRound(-mx, cvw))
-        matrix.strongPoint.translateY(halfRound(-my, cvh))
-        matrix.strongPoint.translateZ(halfRound(-mz, cvh))
-        model.strongPoint.drawPoints()
-
-        // 原点を描く
-        matrix.originalPoint.scaleX(control.current.scale)
-        matrix.originalPoint.scaleY(control.current.scale)
-        matrix.originalPoint.scaleZ(control.current.scale)
-        matrix.originalPoint.rotateX(rx * Math.PI / 2)
-        matrix.originalPoint.rotateY(ry * Math.PI / 2)
-        matrix.originalPoint.translateX(halfRound(-cx, cvw))
-        matrix.originalPoint.translateY(halfRound(-cy, cvh))
-        matrix.originalPoint.translateZ(halfRound(-cz, cvh))
-        model.originalPoint.drawPoints()
+            // 原点を描く
+            matrix.originalPoint.scaleX(control.current.scale)
+            matrix.originalPoint.scaleY(control.current.scale)
+            matrix.originalPoint.scaleZ(control.current.scale)
+            matrix.originalPoint.rotateX(rx * Math.PI / 2)
+            matrix.originalPoint.rotateY(ry * Math.PI / 2)
+            matrix.originalPoint.translateX(halfRound(-cx, cvw))
+            matrix.originalPoint.translateY(halfRound(-cy, cvh))
+            matrix.originalPoint.translateZ(halfRound(-cz, cvh))
+            model.originalPoint.drawPoints()
+        }
 
         // 点モデルを描く
         if(
@@ -1493,11 +1502,11 @@ const animationFrame = (timestamp) =>
         while(2 < cy) cy -= 2
         while(cy < -2) cy += 2
 
-        // テクスチャ板
-        matrix.texture.initialize()
-        matrix.texture.translateX(halfRound(-cx, cvw))
-        matrix.texture.translateY(halfRound(-cy, cvh))
-        model.texture.drawTriangles()
+            // テクスチャ板
+            matrix.texture.initialize()
+            matrix.texture.translateX(halfRound(-cx, cvw))
+            matrix.texture.translateY(halfRound(-cy, cvh))
+            model.texture.drawTriangles()
 
         // 点モデルを描く
         matrix.point2d.initialize()
@@ -1505,11 +1514,15 @@ const animationFrame = (timestamp) =>
         matrix.point2d.translateY(halfRound(-cy, cvh))
         model.point2d.drawPoints()
 
-        // 背景のバツを描画
-        matrix.bg2d.initialize()
-        matrix.bg2d.translateX(halfRound(-cx, cvw))
-        matrix.bg2d.translateY(halfRound(-cy, cvh))
-        model.bg2d.drawTriangles()
+        // 「2D」モード以外
+        if(mode.name !== 'param2d')
+        {
+            // 薄い四角を描画
+            matrix.bg2d.initialize()
+            matrix.bg2d.translateX(halfRound(-cx, cvw))
+            matrix.bg2d.translateY(halfRound(-cy, cvh))
+            model.bg2d.drawTriangles()
+        }
     }
 
     // 真ん中の照準を描く
@@ -1559,7 +1572,13 @@ const callback =
     fileImported: (e) =>
     {
         const json = e.target.result
-        object = JSON.parse(json)
+        const o = JSON.parse(json)
+
+        // spaceファイルなら読み込み
+        if(o.type === 'space') object = o
+        else return
+
+        object.version = control.version
 
         update()
 
@@ -1575,12 +1594,16 @@ const callback =
     },
     import: (e) =>
     {
+        element.importFile.value = ''
         const i = element.importFile
         i.click()
     },
     // ファイルに出力
     export: (e) =>
     {
+        e.stopPropagation()
+        e.preventDefault()
+
         // json作成
         const json = JSON.stringify(object, null, 0)
 
@@ -1634,6 +1657,7 @@ const callback =
         const json = localStorage.getItem(s)
 
         object = JSON.parse(json)
+        object.version = control.version
 
         addClass(element.strageDiv, 'none')
 
@@ -2056,9 +2080,6 @@ const callback =
             removeClass(t, 'selected')
         }
 
-        // 頂点と面の選択をすべてまとめてリスト
-        updateSelectedList()
-
         updateVertexList()
     },
     selectSurface: (e) =>
@@ -2083,9 +2104,6 @@ const callback =
             control.surface.selected.splice(c, 1)
             removeClass(t, 'selected')
         }
-
-        // 頂点と面の選択をすべてまとめてリスト
-        updateSelectedList()
 
         updateSurfaceList()
     },
@@ -2121,7 +2139,6 @@ const callback =
             updateSurfaceList()
             removeClass(e.target, 'selected')
         }
-        updateSelectedList()
     },
     // データを置く
     put: (e) =>
@@ -2234,15 +2251,35 @@ const callback =
             updateSurfaceList()
             updateModel()
         }
-        // テクセル消し
+        // テクセルスポイト
         if(mode.name === 'texel')
         {
-            control.texel.remove = !control.texel.remove
-            control.texel.put = false
+            const x = Math.floor(control.current.texX * object.texture.width)
+            const y = Math.floor(control.current.texY * object.texture.height)
+            const w = object.texture.width
+            console.log(x,y,w)
+            const r = object.texture.data[(y * w + x) * 4 + 0]
+            const g = object.texture.data[(y * w + x) * 4 + 1]
+            const b = object.texture.data[(y * w + x) * 4 + 2]
+            const a = object.texture.data[(y * w + x) * 4 + 3]
+            const hr = r.toString(16).padStart(2, '0')
+            const hg = g.toString(16).padStart(2, '0')
+            const hb = b.toString(16).padStart(2, '0')
+            const ha = a.toString(16).padStart(2, '0')
+            control.texel.color[0] = r
+            control.texel.color[1] = g
+            control.texel.color[2] = b
+            control.texel.color[3] = a
 
-            if(control.texel.remove) addClass(element.remove, 'selected')
-            else removeClass(element.remove, 'selected')
-            removeClass(element.put, 'selected')
+            const h = '#' + hr + hg + hb
+            element.buttonTexelColor.style.backgroundColor = h
+            element.buttonTexelColor.value = h
+            element.texelColor.value = h
+
+            let c
+            if(r + g + b > 3 / 2) c = '#000'
+            else c = '#FFF'
+            element.buttonTexelColor.style.color = c
         }
     },
     // つかんで移動ツール
@@ -2266,17 +2303,55 @@ const callback =
             updateSurfaceList()
         }
     },
+    buttonVertexColor: (e) =>
+    {
+        // 選択されていたら
+        if(control.vertex.selected.length)
+        {
+            const s = control.vertex.selected[control.vertex.selected.length - 1]
+            const r = object.color[s * 3 + 0]
+            const g = object.color[s * 3 + 1]
+            const b = object.color[s * 3 + 2]
+            const hr = (r * 0xFF).toString(16).padStart(2, '0')
+            const hg = (g * 0xFF).toString(16).padStart(2, '0')
+            const hb = (b * 0xFF).toString(16).padStart(2, '0')
+
+            const h = '#' + hr + hg + hb
+            element.buttonVertexColor.style.backgroundColor = h
+            element.buttonVertexColor.value = h
+            element.vertexColor.value = h
+            let c
+            if(r + g + b > 3 / 2) c = '#000'
+            else c = '#FFF'
+            element.buttonVertexColor.style.color = c
+        }
+        element.vertexColor.click()
+    },
+    buttonTexelColor: (e) =>
+    {
+        element.texelColor.click()
+    },
     vertexColor: (e) =>
     {
         const v = element.vertexColor.value
-        const r = v.substring(1, 3)
-        const g = v.substring(3, 5)
-        const b = v.substring(5, 7)
+        const hr = v.substring(1, 3)
+        const hg = v.substring(3, 5)
+        const hb = v.substring(5, 7)
+        const r = parseInt(hr, 16) / 0xFF
+        const g = parseInt(hg, 16) / 0xFF
+        const b = parseInt(hb, 16) / 0xFF
 
-        control.vertex.color[0] = parseInt(r, 16) / 0xFF
-        control.vertex.color[1] = parseInt(g, 16) / 0xFF
-        control.vertex.color[2] = parseInt(b, 16) / 0xFF
+        control.vertex.color[0] = r
+        control.vertex.color[1] = g
+        control.vertex.color[2] = b
         control.vertex.color[3] = 1
+
+        element.buttonVertexColor.style.backgroundColor = v
+        element.buttonVertexColor.value = v
+        let c
+        if(r + g + b > 3 / 2) c = '#000'
+        else c = '#FFF'
+        element.buttonVertexColor.style.color = c
 
         // 選択されていたら
         if(control.vertex.selected.length)
@@ -2288,20 +2363,33 @@ const callback =
                 object.color[v * 3 + 1] = control.vertex.color[1]
                 object.color[v * 3 + 2] = control.vertex.color[2]
             }
-            updateModel()
+
+            control.vertex.selected =[]
+            update()
         }
     },
     texelColor: (e) =>
     {
         const v = element.texelColor.value
-        const r = v.substring(1, 3)
-        const g = v.substring(3, 5)
-        const b = v.substring(5, 7)
+        const hr = parseInt(v.substring(1, 3), 16)
+        const hg = parseInt(v.substring(3, 5), 16)
+        const hb = parseInt(v.substring(5, 7), 16)
+        const r = hr / 0xFF
+        const g = hg / 0xFF
+        const b = hb / 0xFF
+        element.buttonTexelColor.style.backgroundColor = v
+        element.buttonTexelColor.value = v
+        let c
+        if(r + g + b > 3 / 2) c = '#000'
+        else c = '#FFF'
+        element.buttonTexelColor.style.color = c
 
-        control.texel.color[0] = parseInt(r, 16)
-        control.texel.color[1] = parseInt(g, 16)
-        control.texel.color[2] = parseInt(b, 16)
+        control.texel.color[0] = hr
+        control.texel.color[1] = hg
+        control.texel.color[2] = hb
         control.texel.color[3] = 255
+
+        putTexel()
     },
     positionReset: (e) =>
     {
@@ -2348,7 +2436,7 @@ const callback =
         }
     },
     // このWebアプリを最新版にする
-    update: (e) =>
+    updateDiv: (e) =>
     {
         if ('serviceWorker' in navigator)
             navigator.serviceWorker.getRegistration()
@@ -2394,7 +2482,7 @@ element.importFile.addEventListener('change', callback.importFile)
 element.openStrage.addEventListener('click', callback.openStrage)
 element.openFile.addEventListener('click', callback.openFile)
 // アプリアップデートボタン
-element.update.addEventListener('click', callback.update)
+element.updateDiv.addEventListener('click', callback.updateDiv)
 // パラメータ適用
 element.param3dForm.addEventListener('submit', callback.apply3d)
 element.param2dForm.addEventListener('submit', callback.apply2d)
@@ -2409,13 +2497,15 @@ element.surfaceMode.addEventListener('pointerdown', callback.changeMode)
 //element.pose3dMode.addEventListener('pointerdown', callback.changeMode)
 //element.pose2dMode.addEventListener('pointerdown', callback.changeMode)
 // 編集用ボタンを押した時のイベント
-element.all.addEventListener('pointerdown', callback.all)
-element.put.addEventListener('pointerdown', callback.put)
-element.remove.addEventListener('pointerdown', callback.remove)
-element.grab.addEventListener('pointerdown', callback.grab)
+element.all.addEventListener('click', callback.all)
+element.put.addEventListener('click', callback.put)
+element.remove.addEventListener('click', callback.remove)
+element.grab.addEventListener('click', callback.grab)
 // 色選択をした時のイベント
-element.vertexColor.addEventListener('input', callback.vertexColor)
-element.texelColor.addEventListener('input', callback.texelColor)
+element.buttonVertexColor.addEventListener('pointerdown', callback.buttonVertexColor)
+element.buttonTexelColor.addEventListener('pointerdown', callback.buttonTexelColor)
+element.vertexColor.addEventListener('change', callback.vertexColor)
+element.texelColor.addEventListener('change', callback.texelColor)
 // 座標の表示を押した時のイベント
 element.positionX.addEventListener('pointerdown', callback.positionReset)
 element.positionY.addEventListener('pointerdown', callback.positionReset)
