@@ -234,7 +234,7 @@ const updateCursor = () =>
     }
 
     // 照準の位置に変化があった
-    const g = control.grid * 2
+    const g = control.grid
     const tw = object.texture.width * 2
     const th = object.texture.height * 2
     if(
@@ -328,7 +328,31 @@ const resetState = () =>
     removeClass(element.remove, 'selected')
     removeClass(element.put, 'selected')
 }
-    
+
+
+// 選択した頂点と面を全て集める
+const updateSelectedList = () =>
+{
+    control.selectedList = []
+    const s = {}
+    for(let v of control.vertex.selected)
+    {
+        control.selectedList.push(v)
+        s[v] = true
+    }
+    for(let v of control.surface.selected)
+    {
+        const i0 = object.index[v * 3 + 0]
+        const i1 = object.index[v * 3 + 1]
+        const i2 = object.index[v * 3 + 2]
+        if(!s[i0]) control.selectedList.push(i0)
+        s[i0] = true
+        if(!s[i1]) control.selectedList.push(i1)
+        s[i1] = true
+        if(!s[i2]) control.selectedList.push(i2)
+        s[i2] = true
+    }
+}
 
 // 面リスト更新
 const updateSurfaceList = () =>
@@ -372,31 +396,7 @@ const updateSurfaceList = () =>
         element.surfaceList.append(li)
     }
 }
-
-// 選択した頂点と面を全て集める
-const updateSelectedList = () =>
-{
-    control.selectedList = []
-    const s = {}
-    for(let v of control.vertex.selected)
-    {
-        control.selectedList.push(v)
-        s[v] = true
-    }
-    for(let v of control.surface.selected)
-    {
-        const i0 = object.index[v * 3 + 0]
-        const i1 = object.index[v * 3 + 1]
-        const i2 = object.index[v * 3 + 2]
-        if(!s[i0]) control.selectedList.push(i0)
-        s[i0] = true
-        if(!s[i1]) control.selectedList.push(i1)
-        s[i1] = true
-        if(!s[i2]) control.selectedList.push(i2)
-        s[i2] = true
-    }
-}
-
+    
 // 頂点リスト更新
 const updateVertexList = () =>
 {
@@ -404,8 +404,8 @@ const updateVertexList = () =>
     element.vertexListSurface.innerHTML = ''
 
     const s = 1 / control.grid / 2
-    const sw = 1 / object.texture.width / 4
-    const sh = 1 / object.texture.height / 4
+    const sw = 1 / object.texture.width / 2
+    const sh = 1 / object.texture.height / 2
     for(let n = 0; n < object.vertexCount; n++)
     {
         // グリッド範囲内の頂点をリスト表示
@@ -1888,16 +1888,16 @@ const callback =
 
         // 範囲によってスクロールか回転かを判断
         const r = nx * nx + ny * ny
-        const rot = 3 / 4
         const scr = 1 / 4
-        if(r > rot * rot || r < scr * scr)
-        {
-            control.scroll = true
-        }
-        else
+        const rot = 3 / 4
+        if(scr * scr < r && r < rot * rot && mode.dimension === 3)
         {
             control.rotate = true
             control.goal.scale = 1 / 2
+        }
+        else
+        {
+            control.scroll = true
         }
 
         control.prevPointer.normalizedX = nx
