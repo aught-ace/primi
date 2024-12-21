@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'P'
+const version = 'Q'
 
 // モード
 let mode = 
@@ -1987,8 +1987,8 @@ const callback =
         // 3d回転
         if(mode.dimension === 3 && control.rotate)
         {
-            control.delta.rotX += -dy
-            control.delta.rotY += -dx
+            control.delta.rotX += -dy * 4
+            control.delta.rotY += -dx * 4
         }
         // 2dスクロール
         if(mode.dimension === 2)
