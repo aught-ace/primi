@@ -1569,8 +1569,8 @@ const callback =
     {
         const file = e.target.files[0]
         const reader = new FileReader()
-        reader.readAsText(file)
         reader.addEventListener('load', callback.fileImported)
+        reader.readAsText(file)
     },
     import: (e) =>
     {
@@ -1594,7 +1594,7 @@ const callback =
         const json = JSON.stringify(object, null, 0)
 
         // blob化
-        const blob = new Blob([json], { type: 'application/json', })
+        const blob = new Blob([json], { type: 'application/x-space', })
 
         // ダウンロード用のaタグ
         const a = document.createElement('a')
