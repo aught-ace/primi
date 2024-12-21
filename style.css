@@ -317,17 +317,6 @@
 }
 
 /* モード関係 */
-/*
-.label
-{
-    width: 2em;
-    height: 2em;
-    line-height: 2em;
-    text-align: center;
-    vertical-align: middle;
-    display: inline-block;
-}
-*/
 #pose-3d-mode,
 #vertex-3d-mode,
 #surface-mode,
@@ -584,15 +573,6 @@ input[disabled]
     color: #999;
     border-color: #777;
 }
-input[type="color"]
-{
-    padding: 0;
-    border-style: none;
-    border-width: 0;
-    border-radius: 0.5em;
-    height: 3.5em;
-    width: 100%;
-}
 
 /* 入力のラベル */
 label
@@ -600,8 +580,9 @@ label
     border-radius: 0.5em;
     padding: 1.25em 0;
     text-align: center;
-    width: 100%;
-    display: block;
+    vertical-align: middle;
+    width: 99%;
+    display: inline-block;
 }
 
 /* 適用ボタン */
@@ -723,6 +704,14 @@ a:active
 .none
 {
     display: none;
+}
+
+/* 潰すクラス */
+.min
+{
+    width: 0;
+    height: 0;
+    opacity: 0;
 }
 
 /* リスト */

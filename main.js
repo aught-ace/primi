@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'N'
+const version = 'P'
 
 // モード
 let mode = 
