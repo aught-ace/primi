@@ -1544,6 +1544,14 @@ const animationFrame = (timestamp) =>
             matrix.object.translateZ(halfRound(-cz, cvh))
             model.object.drawTriangles()
         }
+
+        if(mode.name !== 'param3d')
+        {
+            // 真ん中の照準を描く
+            matrix.center.initialize()
+            matrix.center.translateZ(-1)
+            model.center.drawPoints()
+        }
     }
 
     // 2D表示
@@ -1576,13 +1584,13 @@ const animationFrame = (timestamp) =>
             matrix.bg2d.translateX(halfRound(-cx, cvw))
             matrix.bg2d.translateY(halfRound(-cy, cvh))
             model.bg2d.drawTriangles()
+
+            // 真ん中の照準を描く
+            matrix.center.initialize()
+            matrix.center.translateZ(-1)
+            model.center.drawPoints()
         }
     }
-
-    // 真ん中の照準を描く
-    matrix.center.initialize()
-    matrix.center.translateZ(-1)
-    model.center.drawPoints()
 
     // 全描画
     renderer.render()
@@ -2087,8 +2095,8 @@ const callback =
             control.goal.texY = (Math.floor(control.current.texY * h * 2) + 0.5) / h / 2
             control.scroll = false
         }
-        // 頂点2dモードの時はグリッドの半分の位置に停止できる
-        if(mode.dimension === 2 && mode.name === 'vertex2d')
+        // テクセル以外のモードではグリッドの半分の位置に停止できる
+        if(mode.dimension === 2 && mode.name !== 'texel')
         {
             control.delta.texX = 0
             control.delta.texY = 0
