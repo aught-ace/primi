@@ -84,6 +84,7 @@ const element =
     fileForm: document.querySelector('#file-form'),
     cancelFile: document.querySelector('#cancel-file'),
     fileDiv: document.querySelector('#file-div'),
+    importFile: document.querySelector('#import-file'),
 }
 
 // 操作オブジェクト
@@ -1565,7 +1566,7 @@ const callback =
         addClass(element.fileDiv, 'none')
     },
     // インポートファイルの中身を取得後に処理を行う
-    fileInput: (e) =>
+    importFile: (e) =>
     {
         const file = e.target.files[0]
         const reader = new FileReader()
@@ -1574,22 +1575,12 @@ const callback =
     },
     import: (e) =>
     {
-        // フォーム送信をキャンセル
-        e.stopPropagation()
-        e.preventDefault()
-
-        // ロード用のinputタグ
-        const inputFile = document.createElement('input')
-        inputFile.type = 'file'
-        inputFile.addEventListener('change', callback.fileInput)
-        inputFile.click()
+        const i = element.importFile
+        i.click()
     },
     // ファイルに出力
     export: (e) =>
     {
-        e.stopPropagation()
-        e.preventDefault()
-
         // json作成
         const json = JSON.stringify(object, null, 0)
 
@@ -2359,12 +2350,12 @@ const callback =
     // このWebアプリを最新版にする
     update: (e) =>
     {
-        if (!('serviceWorker' in navigator)) return
-        navigator.serviceWorker.getRegistration()
-            .then(registration => {
-                registration.unregister()
-            })
-        window.location.reload(true)
+        if ('serviceWorker' in navigator)
+            navigator.serviceWorker.getRegistration()
+                .then(registration => {
+                    registration.unregister()
+                })
+        location.reload()
     },
     preventDefault: (e) =>
     {
@@ -2398,6 +2389,7 @@ element.strageForm.addEventListener('submit', callback.saveButton)
 element.cancelFile.addEventListener('click', callback.cancelFile)
 element.fileForm.addEventListener('submit', callback.export)
 element.import.addEventListener('click', callback.import)
+element.importFile.addEventListener('change', callback.importFile)
 /* ストレージとファイルの画面を開くボタン */
 element.openStrage.addEventListener('click', callback.openStrage)
 element.openFile.addEventListener('click', callback.openFile)
