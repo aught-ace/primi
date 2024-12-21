@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'Q'
+const version = 'R'
 
 // モード
 let mode = 
@@ -369,27 +369,51 @@ const updateSurfaceList = () =>
 {
     element.surfaceList.innerHTML = ''
 
-    const s = 1 / control.grid / 2
+    const g = control.grid
+    const s = 1 / g / 2
+    const tw = object.texture.width
+    const th = object.texture.height
+    const sw = 1 / tw / 4
+    const sh = 1 / th / 4
+    const xn = Math.round(control.current.x * g) / g - s
+    const xp = Math.round(control.current.x * g) / g + s
+    const yn = Math.round(control.current.y * g) / g - s
+    const yp = Math.round(control.current.y * g) / g + s
+    const zn = Math.round(control.current.z * g) / g - s
+    const zp = Math.round(control.current.z * g) / g + s
 
     // グリッド範囲内の頂点を列挙
     const vl = []
     for(let n = 0; n < object.vertexCount; n++)
     {
         const r = 
-            object.position[n * 3 + 0] > control.current.x - s &&
-            object.position[n * 3 + 0] < control.current.x + s &&
-            object.position[n * 3 + 1] > control.current.y - s &&
-            object.position[n * 3 + 1] < control.current.y + s &&
-            object.position[n * 3 + 2] > control.current.z - s &&
-            object.position[n * 3 + 2] < control.current.z + s 
+            object.position[n * 3 + 0] > xn &&
+            object.position[n * 3 + 0] <= xp &&
+            object.position[n * 3 + 1] > yn &&
+            object.position[n * 3 + 1] <= yp &&
+            object.position[n * 3 + 2] > zn &&
+            object.position[n * 3 + 2] <= zp
         if(r) vl.push(n)
     }
     // 列挙した頂点を含む三角形を列挙
+    let cm = false
     const i = object.index
     const sl = []
     for(let n = 0; n < vl.length; n++)
         for(let m = 0; m < i.length; m++)
-            if(i[m] === vl[n]) sl.push(Math.floor(m / 3))
+        {
+            // 違う頂点ならスキップ
+            if(i[m] !== vl[n]) continue
+
+            const c = Math.floor(m / 3)
+
+            // かぶっていたらスキップ
+            cm = false
+            for(let s of sl) if(s === c) cm = true
+            if(cm) continue
+
+            sl.push(c)
+        }
                 
     // それらの三角形をリスト
     for(let n = 0; n < sl.length; n++)
@@ -414,25 +438,39 @@ const updateVertexList = () =>
     element.vertexList.innerHTML = ''
     element.vertexListSurface.innerHTML = ''
 
-    const s = 1 / control.grid / 2
-    const sw = 1 / object.texture.width / 4
-    const sh = 1 / object.texture.height / 4
+    const g = control.grid
+    const s = 1 / g / 2
+    const tw = object.texture.width * 2
+    const th = object.texture.height * 2
+    const sw = 1 / tw / 4
+    const sh = 1 / th / 4
+    const xn = Math.round(control.current.x * g) / g - s
+    const xp = Math.round(control.current.x * g) / g + s
+    const yn = Math.round(control.current.y * g) / g - s
+    const yp = Math.round(control.current.y * g) / g + s
+    const zn = Math.round(control.current.z * g) / g - s
+    const zp = Math.round(control.current.z * g) / g + s
+    const txn = Math.round(control.current.texX * tw) / tw - sw
+    const txp = Math.round(control.current.texX * tw) / tw + sw
+    const tyn = Math.round(control.current.texY * th) / th - sh
+    const typ = Math.round(control.current.texY * th) / th + sh
+
     for(let n = 0; n < object.vertexCount; n++)
     {
         // グリッド範囲内の頂点をリスト表示
         const r = 
             mode.dimension === 3 &&
-            object.position[n * 3 + 0] > control.current.x - s &&
-            object.position[n * 3 + 0] < control.current.x + s &&
-            object.position[n * 3 + 1] > control.current.y - s &&
-            object.position[n * 3 + 1] < control.current.y + s &&
-            object.position[n * 3 + 2] > control.current.z - s &&
-            object.position[n * 3 + 2] < control.current.z + s ||
+            object.position[n * 3 + 0] > xn &&
+            object.position[n * 3 + 0] <= xp &&
+            object.position[n * 3 + 1] > yn &&
+            object.position[n * 3 + 1] <= yp &&
+            object.position[n * 3 + 2] > zn &&
+            object.position[n * 3 + 2] <= zp ||
             mode.dimension === 2 &&
-            object.coordinate[n * 2 + 0] > control.current.texX - sw &&
-            object.coordinate[n * 2 + 0] < control.current.texX + sw &&
-            object.coordinate[n * 2 + 1] > control.current.texY - sh &&
-            object.coordinate[n * 2 + 1] < control.current.texY + sh
+            object.coordinate[n * 2 + 0] > txn &&
+            object.coordinate[n * 2 + 0] <= txp &&
+            object.coordinate[n * 2 + 1] > tyn &&
+            object.coordinate[n * 2 + 1] <= typ
         if(r)
         {
             const li = document.createElement('li')
@@ -2088,6 +2126,31 @@ const callback =
         {
             control.vertex.selected.push(i)
             addClass(t, 'selected')
+
+            // 色をスポイト
+            const r = object.color[i * 3 + 0]
+            const g = object.color[i * 3 + 1]
+            const b = object.color[i * 3 + 2]
+            const hr = (r * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+            const hg = (g * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+            const hb = (b * 0xFF).toString(16).padStart(2, '0').toUpperCase()
+
+            const h = '#' + hr + hg + hb
+            let c
+            if(r + g + b > 3 / 2) c = '#000'
+            else c = '#FFF'
+            element.buttonVertexColor.style.backgroundColor = h
+            element.buttonVertexColor.textContent = h
+            element.vertexColor.value = h
+            element.buttonVertexColor.style.color = c
+            element.buttonVertexColorSurface.style.backgroundColor = h
+            element.buttonVertexColorSurface.textContent = h
+            element.vertexColorSurface.value = h
+            element.buttonVertexColorSurface.style.color = c
+
+            control.vertex.color[0] = r
+            control.vertex.color[1] = g
+            control.vertex.color[2] = b
         }
         // 選択されていたら選択解除
         else
@@ -2148,12 +2211,27 @@ const callback =
         }
         if(mode.name === 'surface')
         {
-            // 全解除
-            control.vertex.selected = []
+            const s = control.selectedList
+            // 何も選択されていなかったら
+            if(!s.length)
+            {
+                // 全選択
+                for(let i = 0; i < object.vertexCount; i++)
+                    control.vertex.selected.push(i)
+                for(let i = 0; i < object.index.length / 3; i++)
+                    control.surface.selected.push(i)
+                addClass(e.target, 'selected')
+            }
+            // 何かが選択されていたら
+            else
+            {
+                // 全解除
+                control.vertex.selected = []
+                control.surface.selected = []
+                removeClass(e.target, 'selected')
+            }
             updateVertexList()
-            control.surface.selected = []
             updateSurfaceList()
-            removeClass(e.target, 'selected')
         }
     },
     // データを置く
@@ -2282,9 +2360,12 @@ const callback =
 
         control.vertex.grab = !control.vertex.grab
 
+        // 選択されている
         if(control.vertex.grab) addClass(element.grab, 'selected')
+        // 選択されていない
         else
         {
+            removeClass(element.all, 'selected')
             removeClass(element.grab, 'selected')
             control.vertex.selected = []
             control.surface.selected = []
@@ -2294,30 +2375,6 @@ const callback =
     },
     buttonVertexColor: (e) =>
     {
-        // 選択されていたらその色を選択
-        if(control.selectedList.length)
-        {
-            const s = control.selectedList[control.selectedList.length - 1]
-            const r = object.color[s * 3 + 0]
-            const g = object.color[s * 3 + 1]
-            const b = object.color[s * 3 + 2]
-            const hr = (r * 0xFF).toString(16).padStart(2, '0').toUpperCase()
-            const hg = (g * 0xFF).toString(16).padStart(2, '0').toUpperCase()
-            const hb = (b * 0xFF).toString(16).padStart(2, '0').toUpperCase()
-
-            const h = '#' + hr + hg + hb
-            let c
-            if(r + g + b > 3 / 2) c = '#000'
-            else c = '#FFF'
-            element.buttonVertexColor.style.backgroundColor = h
-            element.buttonVertexColor.textContent = h
-            element.vertexColor.value = h
-            element.buttonVertexColor.style.color = c
-            element.buttonVertexColorSurface.style.backgroundColor = h
-            element.buttonVertexColorSurface.textContent = h
-            element.vertexColorSurface.value = h
-            element.buttonVertexColorSurface.style.color = c
-        }
     },
     vertexColor: (e) =>
     {
@@ -2357,8 +2414,6 @@ const callback =
                 object.color[v * 3 + 2] = control.vertex.color[2]
             }
 
-            control.vertex.selected = []
-            control.surface.selected = []
             update()
         }
     },
@@ -2528,9 +2583,9 @@ element.grab.addEventListener('click', callback.grab)
 element.buttonVertexColor.addEventListener('click', callback.buttonVertexColor)
 element.buttonVertexColorSurface.addEventListener('click', callback.buttonVertexColor)
 element.buttonTexelColor.addEventListener('click', callback.buttonTexelColor)
-element.vertexColor.addEventListener('change', callback.vertexColor)
-element.vertexColorSurface.addEventListener('change', callback.vertexColor)
-element.texelColor.addEventListener('change', callback.texelColor)
+element.vertexColor.addEventListener('input', callback.vertexColor)
+element.vertexColorSurface.addEventListener('input', callback.vertexColor)
+element.texelColor.addEventListener('input', callback.texelColor)
 // 座標の表示を押した時のイベント
 element.positionX.addEventListener('pointerdown', callback.positionReset)
 element.positionY.addEventListener('pointerdown', callback.positionReset)
