@@ -21,9 +21,7 @@
                     id="open-strage" value="Strage" type="button"><input
                     id="open-file" value="File" type="button">
             </div>
-            <div id="update-div">
-                <img src="icon.png" id="update">
-            </div>
+            <div id="update-div">0.0.0</div>
             <div id="mode-3d">
                 <span
                     id="param-3d-mode" class="radio-button selected">3D</span><span
@@ -96,7 +94,8 @@
                     </dd>
                     <dt>Vertex Color</dt>
                     <dd>
-                        <input value="#FFFFFF" id="vertex-color" type="color">
+                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="button-vertex-color" type="button">
+                        <input value="#FFFFFF" style="background-color:#FFFFFF; color:#000;" id="vertex-color" class="none" type="color">
                     </dd>
                 </dl>
             </div>
@@ -119,7 +118,8 @@
                 <dl>
                     <dt>Texel Color</dt>
                     <dd>
-                        <input value="#000000" id="texel-color" type="color">
+                        <input value="#000000" style="background-color:#000000; color:#FFF;" id="button-texel-color" type="button">
+                        <input value="#000000" style="background-color:#000000; color:#FFF;" id="texel-color" class="none" type="color">
                     </dd>
                 </dl>
             </div>
