@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'Z'
+const version = 'B'
 
 // モード
 let mode = 
@@ -160,7 +160,7 @@ const updateCursor = () =>
     if(1 < control.goal.rotX) control.goal.rotX = 1
 
     // 丸める時のはじくような挙動
-    const div = 1.125
+    const div = 1.25
     control.current.x = (control.current.x - control.goal.x) / div + control.goal.x
     control.current.y = (control.current.y - control.goal.y) / div + control.goal.y
     control.current.z = (control.current.z - control.goal.z) / div + control.goal.z
@@ -169,7 +169,7 @@ const updateCursor = () =>
     control.current.rotY = (control.current.rotY - control.goal.rotY) / div + control.goal.rotY
     control.current.texX = (control.current.texX - control.goal.texX) / div + control.goal.texX
     control.current.texY = (control.current.texY - control.goal.texY) / div + control.goal.texY
-    control.current.scale = (control.current.scale - control.goal.scale) / div + control.goal.scale
+    control.current.rotating = (control.current.rotating - control.goal.rotating) / div + control.goal.rotating
     // 十分近づいたら同じ値にしてしまう
     const e = 1 / 256
     if(Math.abs(control.current.x - control.goal.x) < e) control.current.x  = control.goal.x
@@ -180,7 +180,7 @@ const updateCursor = () =>
     if(Math.abs(control.current.rotY - control.goal.rotY) < e) control.current.rotY  = control.goal.rotY
     if(Math.abs(control.current.texX - control.goal.texX) < e) control.current.texX  = control.goal.texX
     if(Math.abs(control.current.texY - control.goal.texY) < e) control.current.texY  = control.goal.texY
-    if(Math.abs(control.current.scale - control.goal.scale) < e) control.current.scale  = control.goal.scale
+    if(Math.abs(control.current.rotating - control.goal.rotating) < e) control.current.rotating  = control.goal.rotating
 
     // つかんだ頂点の位置を変化させる
     if(control.vertex.grab)
@@ -687,7 +687,7 @@ const init = () =>
             rotY: 0,
             texX: 0.5 / object.texture.width,
             texY: 0.5 / object.texture.height,
-            scale: 1,
+            rotating: 1,
         },
         goal:
         {
@@ -699,7 +699,7 @@ const init = () =>
             rotY: 0,
             texX: 0.5 / object.texture.width,
             texY: 0.5 / object.texture.height,
-            scale: 1,
+            rotating: 1,
         },
         update:
         {
@@ -1450,38 +1450,29 @@ const animationFrame = (timestamp) =>
         matrix.point3d.initialize()
         matrix.object.initialize()
 
-        // 平行投影にする
-        matrix.originalPoint.parallel(-1, 1, -1, 1, 1, 100)
-        matrix.strongPoint.parallel(-1, 1, -1, 1, 1, 100)
-        matrix.point3d.parallel(-1, 1, -1, 1, 1, 100)
-        matrix.object.parallel(-1, 1, -1, 1, 1, 100)
+        // 回転させていない時0, 回転させている時1の変数
+        const s = control.current.rotating
+        let n
 
-        // カメラが回っているか、「3D」モード表示の時
-        if(control.current.scale !== 1 || mode.name !== 'param3d')
-        {
-            // すべて50だけ前進させて全体が映るようにする
-            matrix.originalPoint.translateZ(50)
-            matrix.strongPoint.translateZ(50)
-            matrix.point3d.translateZ(50)
-            matrix.object.translateZ(50)
-        }
-        // 回っていない
-        else
-        {
-            // すべて1と少しだけ前進させてカメラの前方のものだけ映るようにする
-            matrix.originalPoint.translateZ(1.125)
-            matrix.strongPoint.translateZ(1.125)
-            matrix.point3d.translateZ(1.125)
-            matrix.object.translateZ(1.125)
-        }
+        // 前方のものだけ表示する
+        if(mode.name !== 'param3d') n = 5 - s * 4
+        // 全体を表示する
+        else n = 1
+
+        matrix.originalPoint.parallel(-1, 1, -1, 1, n, 9)
+        matrix.strongPoint.parallel(-1, 1, -1, 1, n, 9)
+        matrix.point3d.parallel(-1, 1, -1, 1, n, 9)
+        matrix.object.parallel(-1, 1, -1, 1, n, 9)
+
+        matrix.originalPoint.translateZ(5.125)
+        matrix.strongPoint.translateZ(5.125)
+        matrix.point3d.translateZ(5.125)
+        matrix.object.translateZ(5.125)
 
         // 「3D」モード以外
         if(mode.name !== 'param3d')
         {
             // 強調する点を描く
-            matrix.strongPoint.scaleX(control.current.scale)
-            matrix.strongPoint.scaleY(control.current.scale)
-            matrix.strongPoint.scaleZ(control.current.scale)
             matrix.strongPoint.rotateX(rx * Math.PI / 2)
             matrix.strongPoint.rotateY(ry * Math.PI / 2)
             matrix.strongPoint.translateX(halfRound(-mx, cvw))
@@ -1490,9 +1481,6 @@ const animationFrame = (timestamp) =>
             model.strongPoint.drawPoints()
 
             // 原点を描く
-            matrix.originalPoint.scaleX(control.current.scale)
-            matrix.originalPoint.scaleY(control.current.scale)
-            matrix.originalPoint.scaleZ(control.current.scale)
             matrix.originalPoint.rotateX(rx * Math.PI / 2)
             matrix.originalPoint.rotateY(ry * Math.PI / 2)
             matrix.originalPoint.translateX(halfRound(-cx, cvw))
@@ -1507,9 +1495,6 @@ const animationFrame = (timestamp) =>
             mode.name === 'surface'
         )
         {
-            matrix.point3d.scaleX(control.current.scale)
-            matrix.point3d.scaleY(control.current.scale)
-            matrix.point3d.scaleZ(control.current.scale)
             matrix.point3d.rotateX(rx * Math.PI / 2)
             matrix.point3d.rotateY(ry * Math.PI / 2)
             matrix.point3d.translateX(halfRound(-cx, cvw))
@@ -1521,12 +1506,6 @@ const animationFrame = (timestamp) =>
         // モデル本体を描く
         if(mode.name !== 'vertex3d')
         {
-            matrix.originalPoint.scaleX(control.current.scale)
-            matrix.originalPoint.scaleY(control.current.scale)
-            matrix.originalPoint.scaleZ(control.current.scale)
-            matrix.object.scaleX(control.current.scale)
-            matrix.object.scaleY(control.current.scale)
-            matrix.object.scaleZ(control.current.scale)
             matrix.object.rotateX(rx * Math.PI / 2)
             matrix.object.rotateY(ry * Math.PI / 2)
             matrix.object.translateX(halfRound(-cx, cvw))
@@ -1954,7 +1933,7 @@ const callback =
         if(scr * scr < r && r < rot * rot && mode.dimension === 3)
         {
             control.rotate = true
-            control.goal.scale = 1 / 2
+            control.goal.rotating = 1
         }
         else
         {
@@ -2017,8 +1996,8 @@ const callback =
         // 3d回転
         if(mode.dimension === 3 && control.rotate)
         {
-            control.delta.rotX += dy * 2
-            control.delta.rotY += dx * 2
+            control.delta.rotX += -dy * 2
+            control.delta.rotY += -dx * 2
         }
         // 2dスクロール
         if(mode.dimension === 2)
@@ -2065,7 +2044,7 @@ const callback =
             control.delta.rotY = 0
             control.goal.rotX = Math.round(control.current.rotX)
             control.goal.rotY = Math.round(control.current.rotY)
-            control.goal.scale = 1
+            control.goal.rotating = 0
             control.rotate = false
         }
         // 2dモード

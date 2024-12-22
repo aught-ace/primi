@@ -257,34 +257,60 @@ const Matrix = class
         this.matrix[ 1] = 0
         this.matrix[ 2] = 0
         this.matrix[ 3] = 0
+
         this.matrix[ 4] = 0
         this.matrix[ 5] = 2 / (up - down)
         this.matrix[ 6] = 0
         this.matrix[ 7] = 0
+
         this.matrix[ 8] = 0
         this.matrix[ 9] = 0
         this.matrix[10] = 2 / (far - near)
         this.matrix[11] = 0
+
         this.matrix[12] = -(right + left) / (right - left)
         this.matrix[13] = -(up + down) / (up - down)
         this.matrix[14] = -(far + near) / (far - near)
         this.matrix[15] = 1
     }
 
-    perspective (left, right, down, up, far, near, size)
+    perspective (left, right, down, up, near, far)
     {
-        if(size === 1.0)
+        /*
+        if(tan === 1.0)
         {
-            this.setParallel(left, right, down, up, near, far)
+            this.parallel(left, right, down, up, near, far)
             return
         }
+        */
 
-        this.matrix[ 0] = 2 * size / (right - left)
+        this.matrix[ 0] = 2 * near / (right - left)
+        this.matrix[ 1] = 0
+        this.matrix[ 2] = 0
+        this.matrix[ 3] = 0
+
+        this.matrix[ 4] = 0
+        this.matrix[ 5] = 2 * near / (up - down)
+        this.matrix[ 6] = 0
+        this.matrix[ 7] = 0
+
+        this.matrix[ 8] = -(right + left) / (right - left)
+        this.matrix[ 9] = -(up + down) / (up - down)
+        this.matrix[10] = (far + near) / (far - near)
+        this.matrix[11] = 1
+
+        this.matrix[12] = 0
+        this.matrix[13] = 0
+        this.matrix[14] = -2 * far * near / (far - near)
+        this.matrix[15] = 0
+
+        /*
+        this.matrix[ 0] = 2 * rate / (right - left)
         this.matrix[ 1] = 0
         this.matrix[ 2] = 0
         this.matrix[ 3] = 0
         this.matrix[ 4] = 0
-        this.matrix[ 5] = 2 * size / (up - down)
+        this.matrix[ 5] = 2 * rate / (up - down)
         this.matrix[ 6] = 0
         this.matrix[ 7] = 0
         this.matrix[ 8] = -(right + left) / (right - left)
@@ -295,6 +321,7 @@ const Matrix = class
         this.matrix[13] = 0
         this.matrix[14] = -2 * far * near / (far - near)
         this.matrix[15] = 0
+        */
     }
 
     multiply (left, right)
