@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'T'
+const version = 'U'
 
 // モード
 let mode = 
@@ -251,19 +251,14 @@ const updateCursor = () =>
         Math.round(control.current.x * g) !== Math.round(x * g) ||
         Math.round(control.current.y * g) !== Math.round(y * g) ||
         Math.round(control.current.z * g) !== Math.round(z * g)
-    )
-    {
-        update()
-    }
+    ) update()
     if(
         Math.round(control.current.texX * tw) !== Math.round(texX * tw) ||
         Math.round(control.current.texY * th) !== Math.round(texY * th)
     )
     {
-        update()
-
-        // テクセル描き
         if(mode.name === 'texel') putTexel()
+        update()
     }
 
     // 表示
@@ -983,7 +978,7 @@ const init = () =>
     model.point3d.index = []
     // スプライト点を描く
     const pointTextureData = []
-    const pw = 64, ph = 64
+    const pw = 16, ph = 16
     for(let y = 0; y < pw; y++)
         for(let x = 0; x < ph; x++)
         {
@@ -992,15 +987,8 @@ const init = () =>
             pointTextureData[(y * pw + x) * 4 + 2] = 0x00
             pointTextureData[(y * pw + x) * 4 + 3] = 0x00
             const r = (x - pw / 2) * (x - pw / 2) + (y - ph / 2) * (y - ph / 2)
-            const p = (pw / 2) * (pw / 2)
-            const q = (pw / 2 - 4) * (pw / 2 - 4)
-            /*
-            if(r <= p)
-            {
-                pointTextureData[(y * pw + x) * 4 + 3] = 0xFF
-            }
-            */
-            if(r <= q)
+            const q = (pw / 2 - 1) * (pw / 2 - 1)
+            if(r < q)
             {
                 pointTextureData[(y * pw + x) * 4 + 0] = 0xFF
                 pointTextureData[(y * pw + x) * 4 + 1] = 0xFF
@@ -1024,7 +1012,7 @@ const init = () =>
     model.point2d.index = []
     // スプライト点を描く
     const point2dTextureData = []
-    const p2w = 64, p2h = 64
+    const p2w = 16, p2h = 16
     for(let y = 0; y < p2w; y++)
         for(let x = 0; x < p2h; x++)
         {
@@ -1033,15 +1021,8 @@ const init = () =>
             point2dTextureData[(y * p2w + x) * 4 + 2] = 0x00
             point2dTextureData[(y * p2w + x) * 4 + 3] = 0x00
             const r = (x - p2w / 2) * (x - p2w / 2) + (y - p2h / 2) * (y - p2h / 2)
-            const p = (p2w / 2) * (p2w / 2)
-            const q = (p2w / 2 - 4) * (p2w / 2 - 4)
-            /*
-            if(r <= p)
-            {
-                point2dTextureData[(y * p2w + x) * 4 + 3] = 0xFF
-            }
-            */
-            if(r <= q)
+            const q = (p2w / 2 - 1) * (p2w / 2 - 1)
+            if(r < q)
             {
                 point2dTextureData[(y * p2w + x) * 4 + 0] = 0xFF
                 point2dTextureData[(y * p2w + x) * 4 + 1] = 0xFF
@@ -1388,8 +1369,6 @@ const putTexel = () =>
     object.texture.data[(y * w + x) * 4 + 1] = c[1]
     object.texture.data[(y * w + x) * 4 + 2] = c[2]
     object.texture.data[(y * w + x) * 4 + 3] = c[3]
-
-    updateTexture()
 }
 
 // xを半分の値で丸める
@@ -2294,6 +2273,7 @@ const callback =
             removeClass(element.remove, 'selected')
             
             putTexel()
+            update()
         }
     },
     remove: (e) =>
@@ -2345,6 +2325,7 @@ const callback =
             removeClass(element.put, 'selected')
             
             putTexel()
+            update()
         }
     },
     // つかんで移動ツール
@@ -2465,6 +2446,7 @@ const callback =
         control.texel.color[3] = 1
 
         putTexel()
+        update()
     },
     positionReset: (e) =>
     {
