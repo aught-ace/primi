@@ -1,4 +1,4 @@
-const cacheName = 'Space 0.0.0 U'
+const cacheName = 'Space 0.0.0 Z'
 
 const file =
 [

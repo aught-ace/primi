@@ -542,6 +542,8 @@ input[type="number"]
     height: 3.5em;
     vertical-align: middle;
     width: 100%;
+    -webkit-user-select: text;
+    user-select: text;
 }
 input[type="number"]
 {
@@ -749,9 +751,6 @@ html
 {
     width: 100svw;
     height: 100svh;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
     overflow: hidden;
     overscroll-behavior-y: none;
 }

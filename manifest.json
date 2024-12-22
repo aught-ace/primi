@@ -5,14 +5,14 @@
     "version": "0.0.0",
     "description": "The Primitive 3D Modeler.",
     "theme_color": "#AAAAAA",
-    "background_color": "#666666",
+    "background_color": "#555555",
     "display": "fullscreen",
     "start_url": "index.html",
     "icons":
     [
         {
             "src": "icon.png",
-            "sizes": "256x256",
+            "sizes": "1024x1024",
             "type": "image/png"
         }
     ],

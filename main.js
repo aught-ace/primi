@@ -2,7 +2,7 @@
 import { Matrix, Shader, Model, Renderer } from './renderer.js'
 
 // バージョン
-const version = 'U'
+const version = 'Z'
 
 // モード
 let mode = 
@@ -568,8 +568,11 @@ const updateModel = () =>
     model.point2d.color = pointColor
     model.point2d.index = pointIndex
     model.object.position = position3d
-    model.object.color = color
-    model.object.coordinate = coordinate
+    if(mode.name === 'param3d')
+        model.object.color = color
+    else
+        model.object.color = pointColor
+        model.object.coordinate = coordinate
     model.object.index = index
     object.vertexCount = count
 }
@@ -577,11 +580,6 @@ const updateModel = () =>
 // 全て更新
 const update = () =>
 {
-    const n = object.name
-    element.nameStrage.value = n
-    element.nameFile.value = n
-    element.name.value = n
-
     updateVertexList()
     updateSurfaceList()
     updateSelect()
@@ -745,10 +743,6 @@ const init = () =>
             normalizedY: 0,
         },
     }
-
-    element.name.value = object.name
-    element.nameStrage.value = object.name
-    element.nameFile.value = object.name
     
     // 描いてあるものを消去
     renderer.clearFrame(0.5, 0.5, 0.5, 1)
@@ -1315,6 +1309,11 @@ const init = () =>
     // テクセル置きなどの状態をリセット
     resetState()
 
+    const n = object.name
+    element.nameStrage.value = n
+    element.nameFile.value = n
+    element.name.value = n
+
     // 画面更新
     update()
 }
@@ -1457,8 +1456,8 @@ const animationFrame = (timestamp) =>
         matrix.point3d.parallel(-1, 1, -1, 1, 1, 100)
         matrix.object.parallel(-1, 1, -1, 1, 1, 100)
 
-        // カメラが回っている
-        if(control.current.scale !== 1)
+        // カメラが回っているか、「3D」モード表示の時
+        if(control.current.scale !== 1 || mode.name !== 'param3d')
         {
             // すべて50だけ前進させて全体が映るようにする
             matrix.originalPoint.translateZ(50)
@@ -1599,13 +1598,13 @@ const callback =
     },
     name: (e) =>
     {
-        const n = e.target.value
+        const t = e.target
+        const n = t.value
         object.name = n
 
-        // 普段のとストレージ画面の名前
-        if(e.target !== element.nameStrage) element.nameStrage.value = n
-        if(e.target !== element.nameFile) element.nameFile.value = n
-        if(e.target !== element.name) element.name.value = n
+        if(t !== element.nameStrage) element.nameStrage.value = n
+        if(t !== element.nameFile) element.nameFile.value = n
+        if(t !== element.name) element.name.value = n
     },
     // インポートファイルのロード完了
     fileImported: (e) =>
@@ -1618,6 +1617,11 @@ const callback =
         else return
 
         object.version = version
+
+        const n = object.name
+        element.nameStrage.value = n
+        element.nameFile.value = n
+        element.name.value = n
 
         update()
 
@@ -1697,6 +1701,11 @@ const callback =
 
         object = JSON.parse(json)
         object.version = version
+
+        const n = object.name
+        element.nameStrage.value = n
+        element.nameFile.value = n
+        element.name.value = n
 
         addClass(element.strageDiv, 'none')
 
@@ -2008,8 +2017,8 @@ const callback =
         // 3d回転
         if(mode.dimension === 3 && control.rotate)
         {
-            control.delta.rotX += -dy * 2
-            control.delta.rotY += -dx * 2
+            control.delta.rotX += dy * 2
+            control.delta.rotY += dx * 2
         }
         // 2dスクロール
         if(mode.dimension === 2)
